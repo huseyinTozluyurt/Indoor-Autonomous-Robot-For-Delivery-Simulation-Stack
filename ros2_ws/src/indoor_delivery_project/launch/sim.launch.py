@@ -95,6 +95,17 @@ def generate_launch_description():
     gz_models_path = AppendEnvironmentVariable(
         'GZ_SIM_RESOURCE_PATH', os.path.join(project_pkg, 'models'))
 
+    # Lets Gazebo find the robot meshes (package://robotnik_description/meshes/...):
+    # it looks for <path>/robotnik_description/..., so add the parent of each share dir.
+    gz_mesh_paths = []
+    for mesh_pkg in ('robotnik_description', 'robotnik_sensors',
+                     'indoor_delivery_robot_description'):
+        try:
+            share_parent = os.path.dirname(get_package_share_directory(mesh_pkg))
+        except Exception:  # noqa: BLE001  (package not installed)
+            continue
+        gz_mesh_paths.append(AppendEnvironmentVariable('GZ_SIM_RESOURCE_PATH', share_parent))
+
     gazebo = OpaqueFunction(function=_gazebo, args=[ros_gz_sim_pkg, project_pkg])
 
     # Gazebo <-> ROS bridge: /clock (needed for use_sim_time) + sensors.
@@ -252,6 +263,7 @@ def generate_launch_description():
                               description='false = Gazebo server only, no window (faster)'),
 
         gz_models_path,
+        *gz_mesh_paths,
         gazebo,
         gz_bridge,
         robot_state_publisher,
