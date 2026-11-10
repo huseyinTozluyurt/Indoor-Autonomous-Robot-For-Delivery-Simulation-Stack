@@ -9,7 +9,3 @@ Six PDF reports on the simulation stack (November 2026):
 5. `05_WebApp_Gazebo_Connection.pdf`
 6. `06_Map_Evolution_Comparison.pdf`
 
-`figures/` holds every figure used. `src/` holds the report sources: `build.py` regenerates all six PDFs
-(needs google-chrome), `scripts/` the analysis scripts that produced the measured figures
-(map metrics against the world files, ArUco accuracy test, offline Dijkstra/Held-Karp runs; run them with
-`/opt/ros/jazzy` and `~/ros2_jazzy_ws/install` sourced), and `data/` their JSON results.
