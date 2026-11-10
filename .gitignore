@@ -1,0 +1,55 @@
+# ---- ROS 2 / colcon ----
+build/
+install/
+log/
+# Third-party packages cloned by setup_workspace.sh (see dependencies.repos)
+ros2_ws/src/indoor_autonomous_robot/
+slam_toolbox_ws/src/indoor_autonomous_robot/
+
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# ---- Java / Spring Boot (Maven) ----
+target/
+!.mvn/wrapper/maven-wrapper.properties
+*.log
+backend_error.log
+
+# ---- Node / React / Vite ----
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+# ---- Secrets and local config ----
+.env
+.env.*
+!.env.example
+application-local.properties
+*.pem
+*.key
+
+# ---- Data that should not go to git ----
+# Raw mapping data (large); only map.pgm/map.yaml/aruco_landmarks.yaml/map_preview.png are kept
+maps/**/scans.npz
+maps/**/observations.csv
+maps/**/trajectory.csv
+web_app/database/backups/
+rosbag*/
+recordings/
+*.mcap
+*.db3
+*.tgz
+*.tar.gz
+
+# ---- Editors / OS ----
+.vscode/
+.idea/
+*.iml
+*.swp
+.DS_Store
+Thumbs.db

@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<COLLADA xmlns="http://www.collada.org/2005/11/COLLADASchema" version="1.4.1">
+  <asset><unit name="meter" meter="1"/><up_axis>Z_UP</up_axis></asset>
+  <library_images>
+    <image id="marker_png"><init_from>aruco_38.png</init_from></image>
+  </library_images>
+  <library_effects>
+    <effect id="marker_effect">
+      <profile_COMMON>
+        <newparam sid="surf"><surface type="2D"><init_from>marker_png</init_from></surface></newparam>
+        <newparam sid="samp"><sampler2D><source>surf</source></sampler2D></newparam>
+        <technique sid="common">
+          <lambert>
+            <emission><color>0.25 0.25 0.25 1</color></emission>
+            <ambient><color>1 1 1 1</color></ambient>
+            <diffuse><texture texture="samp" texcoord="UVMap"/></diffuse>
+          </lambert>
+        </technique>
+      </profile_COMMON>
+    </effect>
+  </library_effects>
+  <library_materials>
+    <material id="marker_mat"><instance_effect url="#marker_effect"/></material>
+  </library_materials>
+  <library_geometries>
+    <geometry id="quad">
+      <mesh>
+        <source id="pos">
+          <float_array id="pos_a" count="12">0 -0.5 -0.5  0 0.5 -0.5  0 0.5 0.5  0 -0.5 0.5</float_array>
+          <technique_common><accessor source="#pos_a" count="4" stride="3">
+            <param name="X" type="float"/><param name="Y" type="float"/><param name="Z" type="float"/>
+          </accessor></technique_common>
+        </source>
+        <source id="nrm">
+          <float_array id="nrm_a" count="3">1 0 0</float_array>
+          <technique_common><accessor source="#nrm_a" count="1" stride="3">
+            <param name="X" type="float"/><param name="Y" type="float"/><param name="Z" type="float"/>
+          </accessor></technique_common>
+        </source>
+        <source id="uv">
+          <float_array id="uv_a" count="8">0 0  1 0  1 1  0 1</float_array>
+          <technique_common><accessor source="#uv_a" count="4" stride="2">
+            <param name="S" type="float"/><param name="T" type="float"/>
+          </accessor></technique_common>
+        </source>
+        <vertices id="verts"><input semantic="POSITION" source="#pos"/></vertices>
+        <triangles material="marker_mat" count="2">
+          <input semantic="VERTEX" source="#verts" offset="0"/>
+          <input semantic="NORMAL" source="#nrm" offset="1"/>
+          <input semantic="TEXCOORD" source="#uv" offset="2" set="0"/>
+          <p>0 0 0  1 0 1  2 0 2   0 0 0  2 0 2  3 0 3</p>
+        </triangles>
+      </mesh>
+    </geometry>
+  </library_geometries>
+  <library_visual_scenes>
+    <visual_scene id="scene">
+      <node id="marker" name="marker">
+        <instance_geometry url="#quad">
+          <bind_material><technique_common>
+            <instance_material symbol="marker_mat" target="#marker_mat">
+              <bind_vertex_input semantic="UVMap" input_semantic="TEXCOORD" input_set="0"/>
+            </instance_material>
+          </technique_common></bind_material>
+        </instance_geometry>
+      </node>
+    </visual_scene>
+  </library_visual_scenes>
+  <scene><instance_visual_scene url="#scene"/></scene>
+</COLLADA>

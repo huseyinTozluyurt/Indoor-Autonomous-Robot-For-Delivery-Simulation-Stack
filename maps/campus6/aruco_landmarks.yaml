@@ -1,0 +1,179 @@
+# ArUco landmark map written by aruco_slam_mapper.py
+# x, y in metres (map frame); yaw = direction the marker faces.
+# delivery_points: where the robot stops to deliver (edit freely).
+frame: map
+created: '2026-11-05T00:38:33'
+dictionary: DICT_4X4_50
+occupancy_map: map.yaml
+start_pose:
+  x: -25.0
+  y: 0.0
+  yaw: 0.0
+delivery_standoff: 2.3
+markers:
+- id: 1
+  name: left_delivery_point_1
+  kind: delivery
+  room: left_room
+  size: 0.3
+  x: -34.956
+  y: -18.017
+  yaw: -0.043
+  sigma_xy: 0.196
+  observations: 30
+- id: 2
+  name: left_delivery_point_2
+  kind: delivery
+  room: left_room
+  size: 0.3
+  x: -34.997
+  y: -6.039
+  yaw: -0.0601
+  sigma_xy: 0.11
+  observations: 30
+- id: 3
+  name: left_delivery_point_3
+  kind: delivery
+  room: left_room
+  size: 0.3
+  x: -33.963
+  y: 6.765
+  yaw: -0.0618
+  sigma_xy: 0.193
+  observations: 27
+- id: 4
+  name: left_delivery_point_4
+  kind: delivery
+  room: left_room
+  size: 0.3
+  x: -33.534
+  y: 18.805
+  yaw: -0.0172
+  sigma_xy: 0.202
+  observations: 71
+- id: 5
+  name: right_delivery_point_1
+  kind: delivery
+  room: right_room
+  size: 0.3
+  x: 34.851
+  y: -20.661
+  yaw: 3.094
+  sigma_xy: 0.694
+  observations: 29
+- id: 6
+  name: right_delivery_point_2
+  kind: delivery
+  room: right_room
+  size: 0.3
+  x: 35.512
+  y: -8.642
+  yaw: 3.103
+  sigma_xy: 0.65
+  observations: 32
+- id: 7
+  name: right_delivery_point_3
+  kind: delivery
+  room: right_room
+  size: 0.3
+  x: 36.019
+  y: 3.417
+  yaw: 3.1343
+  sigma_xy: 0.65
+  observations: 42
+- id: 8
+  name: right_delivery_point_4
+  kind: delivery
+  room: right_room
+  size: 0.3
+  x: 36.269
+  y: 15.472
+  yaw: 3.1389
+  sigma_xy: 0.701
+  observations: 77
+- id: 10
+  name: left_room_far
+  kind: room
+  room: left_room
+  size: 1.0
+  x: -34.791
+  y: 0.087
+  yaw: -0.0096
+  sigma_xy: 0.081
+  observations: 222
+- id: 11
+  name: left_room_door
+  kind: room
+  room: left_room
+  size: 0.6
+  x: -14.773
+  y: -4.216
+  yaw: 3.1134
+  sigma_xy: 0.095
+  observations: 189
+- id: 20
+  name: right_room_far
+  kind: room
+  room: right_room
+  size: 1.0
+  x: 35.789
+  y: -2.544
+  yaw: 3.1411
+  sigma_xy: 0.643
+  observations: 194
+- id: 21
+  name: right_room_door
+  kind: room
+  room: right_room
+  size: 0.6
+  x: 15.522
+  y: -5.956
+  yaw: -0.0335
+  sigma_xy: 0.398
+  observations: 62
+delivery_points:
+  left_delivery_point_1:
+    x: -32.658
+    y: -18.116
+    yaw: 3.0986
+    marker_id: 1
+  left_delivery_point_2:
+    x: -32.701
+    y: -6.177
+    yaw: 3.0815
+    marker_id: 2
+  left_delivery_point_3:
+    x: -31.667
+    y: 6.623
+    yaw: 3.0798
+    marker_id: 3
+  left_delivery_point_4:
+    x: -31.234
+    y: 18.765
+    yaw: 3.1244
+    marker_id: 4
+  right_delivery_point_1:
+    x: 32.553
+    y: -20.551
+    yaw: -0.0476
+    marker_id: 5
+  right_delivery_point_2:
+    x: 33.213
+    y: -8.553
+    yaw: -0.0386
+    marker_id: 6
+  right_delivery_point_3:
+    x: 33.719
+    y: 3.434
+    yaw: -0.0073
+    marker_id: 7
+  right_delivery_point_4:
+    x: 33.969
+    y: 15.478
+    yaw: -0.0027
+    marker_id: 8
+  home:
+    x: -25.0
+    y: 0.0
+    yaw: 0.0
+    marker_id: null

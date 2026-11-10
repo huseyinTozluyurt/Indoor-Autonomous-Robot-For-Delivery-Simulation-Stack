@@ -1,0 +1,26 @@
+<?xml version="1.0" ?>
+<sdf version="1.8">
+  <model name="aruco_marker_5">
+    <static>true</static>
+    <!-- DICT_4X4_50 id 5, black square 0.30 m. Faces +X. -->
+    <link name="link">
+      <visual name="marker">
+        <pose>0.002 0 0 0 0 0</pose>
+        <geometry>
+          <mesh>
+            <uri>model://aruco_marker_5/meshes/marker.dae</uri>
+            <scale>0.3750 0.3750 0.3750</scale>
+          </mesh>
+        </geometry>
+        <cast_shadows>false</cast_shadows>
+      </visual>
+      <visual name="backing">
+        <pose>-0.003 0 0 0 0 0</pose>
+        <geometry><box><size>0.006 0.3950 0.3950</size></box></geometry>
+        <material>
+          <ambient>1 1 1 1</ambient><diffuse>1 1 1 1</diffuse>
+        </material>
+      </visual>
+    </link>
+  </model>
+</sdf>

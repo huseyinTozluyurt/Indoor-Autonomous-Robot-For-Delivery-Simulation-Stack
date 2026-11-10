@@ -1,0 +1,585 @@
+<?xml version="1.0" ?>
+<sdf version="1.8">
+  <world name="bridge_rooms_world">
+
+    <!-- Gazebo systems -->
+    <plugin filename="gz-sim-physics-system" name="gz::sim::systems::Physics"/>
+    <plugin filename="gz-sim-user-commands-system" name="gz::sim::systems::UserCommands"/>
+    <plugin filename="gz-sim-scene-broadcaster-system" name="gz::sim::systems::SceneBroadcaster"/>
+    <plugin filename="gz-sim-sensors-system" name="gz::sim::systems::Sensors">
+      <render_engine>ogre2</render_engine>
+    </plugin>
+
+    <gravity>0 0 -9.8</gravity>
+
+    <!-- Brighter ambient + a fill light from the east so markers on every
+         wall (including the ones facing away from the sun) stay readable. -->
+    <scene>
+      <ambient>0.6 0.6 0.6 1</ambient>
+      <background>0.7 0.7 0.7 1</background>
+    </scene>
+
+    <light type="directional" name="fill_light">
+      <cast_shadows>false</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>0.5 0.5 0.5 1</diffuse>
+      <specular>0.05 0.05 0.05 1</specular>
+      <direction>0.5 -0.1 -0.6</direction>
+    </light>
+
+    <!-- Optional light -->
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <!-- Ground plane -->
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>200 200</size>
+            </plane>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>200 200</size>
+            </plane>
+          </geometry>
+          <material>
+            <ambient>0.7 0.7 0.7 1</ambient>
+            <diffuse>0.7 0.7 0.7 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- ========================================================= -->
+    <!-- DIMENSIONS -->
+    <!-- Room size: 20m (X length) x 50m (Y width) -->
+    <!-- Bridge size: 30m (X length) x 4m (Y width) -->
+    <!-- Wall thickness: 0.3m -->
+    <!-- Wall height: 3m -->
+    <!-- Layout centers:
+         Left room center  = (-25, 0)
+         Bridge center     = (  0, 0)
+         Right room center = ( 25, 0)
+    -->
+    <!-- ========================================================= -->
+
+    <!-- ================= LEFT ROOM FLOOR ================= -->
+    <model name="left_room_floor">
+      <static>true</static>
+      <pose>-25 0 0.025 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box><size>20 50 0.05</size></box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box><size>20 50 0.05</size></box>
+          </geometry>
+          <material>
+            <ambient>0.85 0.85 0.85 1</ambient>
+            <diffuse>0.85 0.85 0.85 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- ================= RIGHT ROOM FLOOR ================= -->
+    <model name="right_room_floor">
+      <static>true</static>
+      <pose>25 0 0.025 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box><size>20 50 0.05</size></box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box><size>20 50 0.05</size></box>
+          </geometry>
+          <material>
+            <ambient>0.85 0.85 0.85 1</ambient>
+            <diffuse>0.85 0.85 0.85 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- ================= BRIDGE FLOOR ================= -->
+    <model name="bridge_floor">
+      <static>true</static>
+      <pose>0 0 0.025 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box><size>30 4 0.05</size></box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box><size>30 4 0.05</size></box>
+          </geometry>
+          <material>
+            <ambient>0.65 0.65 0.65 1</ambient>
+            <diffuse>0.65 0.65 0.65 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- ================= LEFT ROOM WALLS ================= -->
+
+    <!-- West wall -->
+    <model name="left_room_west_wall">
+      <static>true</static>
+      <pose>-35 0 1.5 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box><size>0.3 50 3</size></box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box><size>0.3 50 3</size></box>
+          </geometry>
+          <material>
+            <ambient>0.3 0.3 0.8 1</ambient>
+            <diffuse>0.3 0.3 0.8 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- South wall -->
+    <model name="left_room_south_wall">
+      <static>true</static>
+      <pose>-25 -25 1.5 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box><size>20 0.3 3</size></box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box><size>20 0.3 3</size></box>
+          </geometry>
+          <material>
+            <ambient>0.3 0.3 0.8 1</ambient>
+            <diffuse>0.3 0.3 0.8 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- North wall -->
+    <model name="left_room_north_wall">
+      <static>true</static>
+      <pose>-25 25 1.5 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box><size>20 0.3 3</size></box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box><size>20 0.3 3</size></box>
+          </geometry>
+          <material>
+            <ambient>0.3 0.3 0.8 1</ambient>
+            <diffuse>0.3 0.3 0.8 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- East wall split into two parts for bridge opening -->
+    <model name="left_room_east_wall_bottom">
+      <static>true</static>
+      <pose>-15 -13.5 1.5 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box><size>0.3 23 3</size></box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box><size>0.3 23 3</size></box>
+          </geometry>
+          <material>
+            <ambient>0.3 0.3 0.8 1</ambient>
+            <diffuse>0.3 0.3 0.8 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="left_room_east_wall_top">
+      <static>true</static>
+      <pose>-15 13.5 1.5 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box><size>0.3 23 3</size></box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box><size>0.3 23 3</size></box>
+          </geometry>
+          <material>
+            <ambient>0.3 0.3 0.8 1</ambient>
+            <diffuse>0.3 0.3 0.8 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- ================= RIGHT ROOM WALLS ================= -->
+
+    <!-- East wall -->
+    <model name="right_room_east_wall">
+      <static>true</static>
+      <pose>35 0 1.5 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box><size>0.3 50 3</size></box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box><size>0.3 50 3</size></box>
+          </geometry>
+          <material>
+            <ambient>0.8 0.3 0.3 1</ambient>
+            <diffuse>0.8 0.3 0.3 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- South wall -->
+    <model name="right_room_south_wall">
+      <static>true</static>
+      <pose>25 -25 1.5 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box><size>20 0.3 3</size></box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box><size>20 0.3 3</size></box>
+          </geometry>
+          <material>
+            <ambient>0.8 0.3 0.3 1</ambient>
+            <diffuse>0.8 0.3 0.3 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- North wall -->
+    <model name="right_room_north_wall">
+      <static>true</static>
+      <pose>25 25 1.5 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box><size>20 0.3 3</size></box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box><size>20 0.3 3</size></box>
+          </geometry>
+          <material>
+            <ambient>0.8 0.3 0.3 1</ambient>
+            <diffuse>0.8 0.3 0.3 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- West wall split into two parts for bridge opening -->
+    <model name="right_room_west_wall_bottom">
+      <static>true</static>
+      <pose>15 -13.5 1.5 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box><size>0.3 23 3</size></box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box><size>0.3 23 3</size></box>
+          </geometry>
+          <material>
+            <ambient>0.8 0.3 0.3 1</ambient>
+            <diffuse>0.8 0.3 0.3 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="right_room_west_wall_top">
+      <static>true</static>
+      <pose>15 13.5 1.5 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box><size>0.3 23 3</size></box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box><size>0.3 23 3</size></box>
+          </geometry>
+          <material>
+            <ambient>0.8 0.3 0.3 1</ambient>
+            <diffuse>0.8 0.3 0.3 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- ================= BRIDGE WALLS ================= -->
+
+    <!-- Bridge north wall -->
+    <model name="bridge_north_wall">
+      <static>true</static>
+      <pose>0 2 1.5 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box><size>30 0.3 3</size></box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box><size>30 0.3 3</size></box>
+          </geometry>
+          <material>
+            <ambient>0.2 0.7 0.2 1</ambient>
+            <diffuse>0.2 0.7 0.2 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- Bridge south wall -->
+    <model name="bridge_south_wall">
+      <static>true</static>
+      <pose>0 -2 1.5 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box><size>30 0.3 3</size></box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box><size>30 0.3 3</size></box>
+          </geometry>
+          <material>
+            <ambient>0.2 0.7 0.2 1</ambient>
+            <diffuse>0.2 0.7 0.2 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+
+
+
+    <!-- ================= DELIVERY POINTS ================= -->
+    <!-- Opposite to corridor side:
+         Left room  -> near west wall
+         Right room -> near east wall
+    -->
+
+    <!-- LEFT ROOM DELIVERY POINTS -->
+    <model name="left_delivery_point_1">
+      <static>true</static>
+      <pose>-32.5 -18 0.06 0 0 0</pose>
+      <link name="link">
+        <visual name="visual">
+          <geometry>
+            <cylinder>
+              <radius>0.8</radius>
+              <length>0.02</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>1.0 0.85 0.1 1</ambient>
+            <diffuse>1.0 0.85 0.1 1</diffuse>
+            <emissive>0.15 0.12 0.02 1</emissive>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="left_delivery_point_2">
+      <static>true</static>
+      <pose>-32.5 -6 0.06 0 0 0</pose>
+      <link name="link">
+        <visual name="visual">
+          <geometry>
+            <cylinder>
+              <radius>0.8</radius>
+              <length>0.02</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>1.0 0.85 0.1 1</ambient>
+            <diffuse>1.0 0.85 0.1 1</diffuse>
+            <emissive>0.15 0.12 0.02 1</emissive>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="left_delivery_point_3">
+      <static>true</static>
+      <pose>-32.5 6 0.06 0 0 0</pose>
+      <link name="link">
+        <visual name="visual">
+          <geometry>
+            <cylinder>
+              <radius>0.8</radius>
+              <length>0.02</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>1.0 0.85 0.1 1</ambient>
+            <diffuse>1.0 0.85 0.1 1</diffuse>
+            <emissive>0.15 0.12 0.02 1</emissive>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="left_delivery_point_4">
+      <static>true</static>
+      <pose>-32.5 18 0.06 0 0 0</pose>
+      <link name="link">
+        <visual name="visual">
+          <geometry>
+            <cylinder>
+              <radius>0.8</radius>
+              <length>0.02</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>1.0 0.85 0.1 1</ambient>
+            <diffuse>1.0 0.85 0.1 1</diffuse>
+            <emissive>0.15 0.12 0.02 1</emissive>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- RIGHT ROOM DELIVERY POINTS -->
+    <model name="right_delivery_point_1">
+      <static>true</static>
+      <pose>32.5 -18 0.06 0 0 0</pose>
+      <link name="link">
+        <visual name="visual">
+          <geometry>
+            <cylinder>
+              <radius>0.8</radius>
+              <length>0.02</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>1.0 0.85 0.1 1</ambient>
+            <diffuse>1.0 0.85 0.1 1</diffuse>
+            <emissive>0.15 0.12 0.02 1</emissive>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="right_delivery_point_2">
+      <static>true</static>
+      <pose>32.5 -6 0.06 0 0 0</pose>
+      <link name="link">
+        <visual name="visual">
+          <geometry>
+            <cylinder>
+              <radius>0.8</radius>
+              <length>0.02</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>1.0 0.85 0.1 1</ambient>
+            <diffuse>1.0 0.85 0.1 1</diffuse>
+            <emissive>0.15 0.12 0.02 1</emissive>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="right_delivery_point_3">
+      <static>true</static>
+      <pose>32.5 6 0.06 0 0 0</pose>
+      <link name="link">
+        <visual name="visual">
+          <geometry>
+            <cylinder>
+              <radius>0.8</radius>
+              <length>0.02</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>1.0 0.85 0.1 1</ambient>
+            <diffuse>1.0 0.85 0.1 1</diffuse>
+            <emissive>0.15 0.12 0.02 1</emissive>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="right_delivery_point_4">
+      <static>true</static>
+      <pose>32.5 18 0.06 0 0 0</pose>
+      <link name="link">
+        <visual name="visual">
+          <geometry>
+            <cylinder>
+              <radius>0.8</radius>
+              <length>0.02</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>1.0 0.85 0.1 1</ambient>
+            <diffuse>1.0 0.85 0.1 1</diffuse>
+            <emissive>0.15 0.12 0.02 1</emissive>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+  </world>
+</sdf>

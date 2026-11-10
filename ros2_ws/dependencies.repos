@@ -1,0 +1,28 @@
+# Third-party packages (Robotnik RB1 robot + sensors + Gazebo worlds), pinned to the
+# commits this project was developed and tested with (ROS 2 Jazzy, Gazebo Harmonic).
+# Import with:  vcs import src < dependencies.repos   (run from ros2_ws/), or ./setup_workspace.sh
+repositories:
+  indoor_autonomous_robot/robotnik_common:
+    type: git
+    url: https://github.com/RobotnikAutomation/robotnik_common.git
+    version: 0153704842c35f115da65c7404d6ce6392f9c817
+  indoor_autonomous_robot/robotnik_description:
+    type: git
+    url: https://github.com/RobotnikAutomation/robotnik_description.git
+    version: 3d70852acee6f281ce01ec94f4b23d65755c2580
+  indoor_autonomous_robot/robotnik_gazebo_worlds:
+    type: git
+    url: https://github.com/RobotnikAutomation/robotnik_gazebo_worlds.git
+    version: 92dba6aa0a25fe24eded378c01c945e0c558f533
+  indoor_autonomous_robot/robotnik_interfaces:
+    type: git
+    url: https://github.com/RobotnikAutomation/robotnik_interfaces.git
+    version: dfd33a260db5c9e528e4a8664614e7c54c6feaab
+  indoor_autonomous_robot/robotnik_sensors:
+    type: git
+    url: https://github.com/RobotnikAutomation/robotnik_sensors.git
+    version: ca6c604b1a6691f4324bb4f821528ea225778a74
+  indoor_autonomous_robot/robotnik_simulation:
+    type: git
+    url: https://github.com/RobotnikAutomation/robotnik_simulation.git
+    version: 8378c89d22e69367991b1830e668ff159875fc35

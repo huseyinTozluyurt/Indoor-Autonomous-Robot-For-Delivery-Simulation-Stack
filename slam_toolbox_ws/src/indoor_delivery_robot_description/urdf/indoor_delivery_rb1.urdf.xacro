@@ -1,0 +1,80 @@
+<?xml version="1.0" ?>
+<robot name="indoor_delivery_rb1" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- Includes -->
+  <xacro:include filename="$(find robotnik_description)/urdf/bases/rb1/rb1_base.xacro" />
+  <xacro:include filename="$(find robotnik_sensors)/urdf/all_sensors.urdf.xacro" />
+
+  <!-- Arguments -->
+  <xacro:arg name="namespace" default="robot" />
+  <xacro:arg name="prefix" default="" />
+  <xacro:arg name="gazebo_ignition" default="true" />
+
+  <!-- Base RB1 -->
+  <xacro:rb1
+    prefix="$(arg prefix)"
+    gazebo_ignition="$(arg gazebo_ignition)"
+    namespace="$(arg namespace)" />
+
+  <!-- ================= SENSORS ================= -->
+
+  <!-- IMU -->
+  <xacro:sensor_vectornav
+    frame_prefix="$(arg prefix)imu_"
+    parent="$(arg prefix)base_link"
+    node_namespace="$(arg namespace)"
+    gazebo_ignition="$(arg gazebo_ignition)">
+    <origin xyz="-0.1975 0.0 0.1098" rpy="0 0 0" />
+  </xacro:sensor_vectornav>
+
+  <!-- LIDAR -->
+  <xacro:sensor_hokuyo_ust20lx
+    frame_prefix="$(arg prefix)front_laser_"
+    parent="$(arg prefix)base_link"
+    node_namespace="$(arg namespace)"
+    node_name="front_laser"
+    gazebo_ignition="$(arg gazebo_ignition)"
+    max_angle="2.3"
+    min_angle="-2.3">
+    <origin xyz="0.210 0.0 0.1588" rpy="0 ${pi} ${pi}" />
+  </xacro:sensor_hokuyo_ust20lx>
+
+  <!-- ================= DELIVERY FEATURES ================= -->
+
+  <!-- Cargo box -->
+  <link name="$(arg prefix)cargo_box_link">
+    <visual>
+      <origin xyz="0 0 0.22" rpy="0 0 0" />
+      <geometry>
+        <box size="0.40 0.30 0.18" />
+      </geometry>
+      <material name="cargo_grey">
+        <color rgba="0.75 0.75 0.78 1.0"/>
+      </material>
+    </visual>
+  </link>
+
+  <joint name="$(arg prefix)cargo_box_joint" type="fixed">
+    <parent link="$(arg prefix)base_link"/>
+    <child link="$(arg prefix)cargo_box_link"/>
+  </joint>
+
+  <!-- Front marker -->
+  <link name="$(arg prefix)front_marker_link">
+    <visual>
+      <origin xyz="0.28 0 0.20" rpy="0 0 0" />
+      <geometry>
+        <cylinder radius="0.03" length="0.05"/>
+      </geometry>
+      <material name="marker_green">
+        <color rgba="0.1 0.8 0.2 1.0"/>
+      </material>
+    </visual>
+  </link>
+
+  <joint name="$(arg prefix)front_marker_joint" type="fixed">
+    <parent link="$(arg prefix)base_link"/>
+    <child link="$(arg prefix)front_marker_link"/>
+  </joint>
+
+</robot>

@@ -1,0 +1,422 @@
+# ArUco landmark map written by aruco_slam_mapper.py
+# x, y in metres (map frame); yaw = direction the marker faces.
+# delivery_points: where the robot stops to deliver (edit freely).
+frame: map
+created: '2026-11-08T00:16:25'
+dictionary: DICT_4X4_50
+occupancy_map: map.yaml
+start_pose:
+  x: -17.0
+  y: -17.0
+  yaw: 0.0
+delivery_standoff: 2.3
+markers:
+- id: 6
+  name: b_delivery_point_2
+  kind: delivery
+  room: building_b
+  size: 0.3
+  x: 40.113
+  y: -6.496
+  yaw: 3.1122
+  sigma_xy: 0.5
+  observations: 102
+- id: 7
+  name: b_delivery_point_3
+  kind: delivery
+  room: building_b
+  size: 0.3
+  x: 40.347
+  y: 3.589
+  yaw: 3.0723
+  sigma_xy: 0.525
+  observations: 54
+- id: 8
+  name: b_delivery_point_4
+  kind: delivery
+  room: building_b
+  size: 0.3
+  x: 40.652
+  y: 13.585
+  yaw: 3.1293
+  sigma_xy: 0.563
+  observations: 51
+- id: 10
+  name: building_a_far
+  kind: room
+  room: building_a
+  size: 1.0
+  x: -27.498
+  y: 5.552
+  yaw: -0.0378
+  sigma_xy: 0.228
+  observations: 267
+- id: 11
+  name: building_a_door
+  kind: room
+  room: building_a
+  size: 0.6
+  x: -12.678
+  y: 1.0
+  yaw: 3.1053
+  sigma_xy: 0.175
+  observations: 24
+- id: 12
+  name: r_delivery_point_1
+  kind: delivery
+  room: right_corridor_north
+  size: 0.3
+  x: 14.317
+  y: 11.073
+  yaw: -1.6161
+  sigma_xy: 0.364
+  observations: 24
+  standoff: 1.2
+- id: 15
+  name: r_delivery_point_4
+  kind: delivery
+  room: right_corridor_south
+  size: 0.3
+  x: 23.092
+  y: -12.6
+  yaw: 1.5312
+  sigma_xy: 0.346
+  observations: 43
+  standoff: 1.2
+- id: 20
+  name: building_b_far
+  kind: room
+  room: building_b
+  size: 1.0
+  x: 40.167
+  y: -1.514
+  yaw: 3.0917
+  sigma_xy: 0.51
+  observations: 192
+- id: 21
+  name: building_b_door
+  kind: room
+  room: building_b
+  size: 0.6
+  x: 32.782
+  y: -1.273
+  yaw: -0.042
+  sigma_xy: 0.446
+  observations: 118
+- id: 30
+  name: cross_corridor_north_end
+  kind: corridor
+  room: cross_corridor
+  size: 0.6
+  x: 0.07
+  y: 14.346
+  yaw: -1.619
+  sigma_xy: 0.309
+  observations: 203
+- id: 31
+  name: cross_corridor_south_end
+  kind: corridor
+  room: cross_corridor
+  size: 0.6
+  x: -0.818
+  y: -14.604
+  yaw: 1.5262
+  sigma_xy: 0.14
+  observations: 80
+- id: 32
+  name: cross_corridor_east_mid
+  kind: corridor
+  room: cross_corridor
+  size: 0.6
+  x: 5.114
+  y: -0.414
+  yaw: 3.0334
+  sigma_xy: 0.253
+  observations: 40
+- id: 33
+  name: cross_corridor_west_mid
+  kind: corridor
+  room: cross_corridor
+  size: 0.6
+  x: -5.72
+  y: 0.4
+  yaw: -0.1224
+  sigma_xy: 0.522
+  observations: 1
+- id: 34
+  name: right_corridor_north_mid
+  kind: corridor
+  room: right_corridor_north
+  size: 0.4
+  x: 18.769
+  y: 5.496
+  yaw: 1.5362
+  sigma_xy: 0.368
+  observations: 49
+- id: 35
+  name: right_corridor_south_mid
+  kind: corridor
+  room: right_corridor_south
+  size: 0.4
+  x: 18.476
+  y: -7.19
+  yaw: -1.6041
+  sigma_xy: 0.312
+  observations: 52
+- id: 41
+  name: a_delivery_point_2
+  kind: delivery
+  room: building_a
+  size: 0.3
+  x: -24.67
+  y: 9.822
+  yaw: 0.0044
+  sigma_xy: 0.25
+  observations: 16
+  standoff: 1.2
+- id: 42
+  name: a_delivery_point_3
+  kind: delivery
+  room: building_a
+  size: 0.3
+  x: -24.887
+  y: 1.401
+  yaw: 0.1121
+  sigma_xy: 0.19
+  observations: 63
+  standoff: 1.2
+- id: 45
+  name: a_delivery_point_6
+  kind: delivery
+  room: building_a
+  size: 0.3
+  x: -19.018
+  y: 17.663
+  yaw: -3.0517
+  sigma_xy: 0.314
+  observations: 17
+  standoff: 1.2
+- id: 46
+  name: a_delivery_point_7
+  kind: delivery
+  room: building_a
+  size: 0.3
+  x: -19.176
+  y: 9.392
+  yaw: -3.1015
+  sigma_xy: 0.235
+  observations: 119
+  standoff: 1.2
+- id: 36
+  name: c_delivery_point_1
+  kind: delivery
+  room: cross_corridor
+  size: 0.3
+  x: 4.2
+  y: 3.95
+  yaw: 3.1416
+  sigma_xy: 0.3
+  observations: 0
+  standoff: 1.2
+  localize: false   # added by hand from the map (mid corridor tables): not a beacon
+- id: 37
+  name: c_delivery_point_2
+  kind: delivery
+  room: cross_corridor
+  size: 0.3
+  x: 4.2
+  y: 3.35
+  yaw: 3.1416
+  sigma_xy: 0.3
+  observations: 0
+  standoff: 1.2
+  localize: false   # added by hand from the map (mid corridor tables): not a beacon
+- id: 38
+  name: c_delivery_point_3
+  kind: delivery
+  room: cross_corridor
+  size: 0.3
+  x: 4.15
+  y: -2.95
+  yaw: 3.1416
+  sigma_xy: 0.3
+  observations: 0
+  standoff: 1.2
+  localize: false   # added by hand from the map (mid corridor tables): not a beacon
+- id: 39
+  name: c_delivery_point_4
+  kind: delivery
+  room: cross_corridor
+  size: 0.3
+  x: 4.15
+  y: -3.55
+  yaw: 3.1416
+  sigma_xy: 0.3
+  observations: 0
+  standoff: 1.2
+  localize: false   # added by hand from the map (mid corridor tables): not a beacon
+- id: 40
+  name: a_delivery_point_1
+  kind: delivery
+  room: building_a
+  size: 0.3
+  x: -24.21
+  y: 17.59
+  yaw: -0.037
+  sigma_xy: 0.3
+  observations: 0
+  standoff: 1.2
+  localize: false   # added by hand (position from nearby mapped markers): not a beacon
+- id: 43
+  name: a_delivery_point_4
+  kind: delivery
+  room: building_a
+  size: 0.3
+  x: -25.09
+  y: -6.4
+  yaw: -0.037
+  sigma_xy: 0.3
+  observations: 0
+  standoff: 1.2
+  localize: false   # added by hand (position from nearby mapped markers): not a beacon
+- id: 47
+  name: a_delivery_point_8
+  kind: delivery
+  room: building_a
+  size: 0.3
+  x: -19.62
+  y: 1.4
+  yaw: 3.105
+  sigma_xy: 0.3
+  observations: 0
+  standoff: 1.2
+  localize: false   # added by hand (position from nearby mapped markers): not a beacon
+- id: 48
+  name: a_delivery_point_9
+  kind: delivery
+  room: building_a
+  size: 0.3
+  x: -19.92
+  y: -6.59
+  yaw: 3.105
+  sigma_xy: 0.3
+  observations: 0
+  standoff: 1.2
+  localize: false   # added by hand (position from nearby mapped markers): not a beacon
+- id: 13
+  name: r_delivery_point_2
+  kind: delivery
+  room: right_corridor_north
+  size: 0.3
+  x: 23.8
+  y: 9.8
+  yaw: -1.615
+  sigma_xy: 0.3
+  observations: 0
+  standoff: 1.2
+  localize: false   # added by hand (position from nearby mapped markers): not a beacon
+- id: 14
+  name: r_delivery_point_3
+  kind: delivery
+  room: right_corridor_south
+  size: 0.3
+  x: 14.4
+  y: -12.6
+  yaw: 1.547
+  sigma_xy: 0.3
+  observations: 0
+  standoff: 1.2
+  localize: false   # added by hand (position from nearby mapped markers): not a beacon
+delivery_points:
+  b_delivery_point_2:
+    x: 37.814
+    y: -6.428
+    yaw: -0.0294
+    marker_id: 6
+  b_delivery_point_3:
+    x: 38.053
+    y: 3.749
+    yaw: -0.0693
+    marker_id: 7
+  b_delivery_point_4:
+    x: 38.352
+    y: 13.613
+    yaw: -0.0123
+    marker_id: 8
+  r_delivery_point_1:
+    x: 14.263
+    y: 9.875
+    yaw: 1.5255
+    marker_id: 12
+  r_delivery_point_4:
+    x: 23.14
+    y: -11.4
+    yaw: -1.6104
+    marker_id: 15
+  a_delivery_point_2:
+    x: -23.47
+    y: 9.828
+    yaw: -3.1372
+    marker_id: 41
+  a_delivery_point_3:
+    x: -23.695
+    y: 1.536
+    yaw: -3.0295
+    marker_id: 42
+  a_delivery_point_6:
+    x: -20.213
+    y: 17.555
+    yaw: 0.0899
+    marker_id: 45
+  a_delivery_point_7:
+    x: -20.375
+    y: 9.344
+    yaw: 0.0401
+    marker_id: 46
+  a_delivery_point_1:   # added by hand
+    x: -23.01
+    y: 17.54
+    yaw: 3.105
+    marker_id: 40
+  a_delivery_point_4:   # added by hand
+    x: -23.89
+    y: -6.44
+    yaw: 3.105
+    marker_id: 43
+  a_delivery_point_8:   # added by hand
+    x: -20.82
+    y: 1.45
+    yaw: -0.037
+    marker_id: 47
+  a_delivery_point_9:   # added by hand
+    x: -21.12
+    y: -6.55
+    yaw: -0.037
+    marker_id: 48
+  r_delivery_point_2:   # added by hand (desk seen on the map at x 23.8, front y 9.8)
+    x: 23.8
+    y: 8.6
+    yaw: 1.526
+    marker_id: 13
+  r_delivery_point_3:   # added by hand (desk seen on the map at x 14.4, front y -12.6)
+    x: 14.4
+    y: -11.4
+    yaw: -1.595
+    marker_id: 14
+  c_table_north:   # added by hand: mid corridor, north table (markers 36/37)
+    x: 3.0
+    y: 3.65
+    yaw: 0.0
+    marker_id: 36
+    marker_ids: [36, 37]
+  c_table_south:   # added by hand: mid corridor, south table (markers 38/39)
+    x: 3.0
+    y: -3.25
+    yaw: 0.0
+    marker_id: 38
+    marker_ids: [38, 39]
+  home:
+    x: -17.0
+    y: -17.0
+    yaw: 0.0
+    marker_id: null

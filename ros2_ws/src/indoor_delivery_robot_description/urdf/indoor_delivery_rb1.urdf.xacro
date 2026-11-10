@@ -1,0 +1,181 @@
+<?xml version="1.0" ?>
+<robot name="indoor_delivery_rb1" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- Includes -->
+  <xacro:include filename="$(find robotnik_description)/urdf/bases/rb1/rb1_base.xacro" />
+  <xacro:include filename="$(find robotnik_sensors)/urdf/all_sensors.urdf.xacro" />
+
+  <!-- Arguments -->
+  <xacro:arg name="namespace" default="robot" />
+  <xacro:arg name="prefix" default="" />
+  <xacro:arg name="gazebo_ignition" default="true" />
+
+  <!-- Base RB1 -->
+  <xacro:rb1
+    prefix="$(arg prefix)"
+    gazebo_ignition="$(arg gazebo_ignition)"
+    namespace="$(arg namespace)" />
+
+  <!-- ================= SENSORS ================= -->
+
+  <!-- IMU -->
+  <xacro:sensor_vectornav
+    frame_prefix="$(arg prefix)imu_"
+    parent="$(arg prefix)base_link"
+    node_namespace="$(arg namespace)"
+    gazebo_ignition="$(arg gazebo_ignition)">
+    <origin xyz="-0.1975 0.0 0.1098" rpy="0 0 0" />
+  </xacro:sensor_vectornav>
+
+  <!-- LIDAR -->
+  <xacro:sensor_hokuyo_ust20lx
+    frame_prefix="$(arg prefix)front_laser_"
+    parent="$(arg prefix)base_link"
+    node_namespace="$(arg namespace)"
+    node_name="front_laser"
+    gazebo_ignition="$(arg gazebo_ignition)"
+    max_angle="2.3"
+    min_angle="-2.3">
+    <origin xyz="0.210 0.0 0.1588" rpy="0 ${pi} ${pi}" />
+  </xacro:sensor_hokuyo_ust20lx>
+
+  <!-- CAMERA -->
+  <xacro:sensor_intel_realsense_d435
+    frame_prefix="$(arg prefix)front_rgbd_camera_"
+    parent="$(arg prefix)base_link"
+    node_namespace="$(arg namespace)"
+    node_name="front_camera"
+    gazebo_ignition="$(arg gazebo_ignition)">
+    <origin xyz="0.234 0.0 0.0408" rpy="0 0 0" />
+  </xacro:sensor_intel_realsense_d435>
+
+  <!-- ================= DELIVERY FEATURES ================= -->
+
+  <!-- Cargo box -->
+  <link name="$(arg prefix)cargo_box_link">
+    <visual>
+      <origin xyz="0 0 0.22" rpy="0 0 0" />
+      <geometry>
+        <box size="0.40 0.30 0.18" />
+      </geometry>
+      <material name="cargo_grey">
+        <color rgba="0.75 0.75 0.78 1.0"/>
+      </material>
+    </visual>
+  </link>
+
+  <joint name="$(arg prefix)cargo_box_joint" type="fixed">
+    <parent link="$(arg prefix)base_link"/>
+    <child link="$(arg prefix)cargo_box_link"/>
+  </joint>
+
+  <!-- Front marker -->
+  <link name="$(arg prefix)front_marker_link">
+    <visual>
+      <origin xyz="0.28 0 0.20" rpy="0 0 0" />
+      <geometry>
+        <cylinder radius="0.03" length="0.05"/>
+      </geometry>
+      <material name="marker_green">
+        <color rgba="0.1 0.8 0.2 1.0"/>
+      </material>
+    </visual>
+  </link>
+
+  <joint name="$(arg prefix)front_marker_joint" type="fixed">
+    <parent link="$(arg prefix)base_link"/>
+    <child link="$(arg prefix)front_marker_link"/>
+  </joint>
+
+
+
+  <!-- ================= MAST CAMERA (ArUco + recording) ================= -->
+  <!-- Plain RGB camera on a short mast above the cargo box. It sees over the
+       box, sits at the delivery-marker height (~0.6 m from the floor) and
+       publishes on gz topic /robot/aruco_camera/image_raw (bridged to ROS by
+       config/gz_bridge.yaml). Gazebo cameras look along the link's +X axis;
+       the optical frame gives image headers the ROS camera convention. -->
+  <xacro:property name="mast_cam_x" value="0.15" />
+  <xacro:property name="mast_cam_z" value="0.55" />
+
+  <link name="$(arg prefix)camera_mast_link">
+    <visual>
+      <origin xyz="0 0 ${(mast_cam_z - 0.31) / 2}" rpy="0 0 0" />
+      <geometry>
+        <cylinder radius="0.015" length="${mast_cam_z - 0.31}" />
+      </geometry>
+      <material name="mast_black">
+        <color rgba="0.1 0.1 0.1 1.0"/>
+      </material>
+    </visual>
+  </link>
+
+  <joint name="$(arg prefix)camera_mast_joint" type="fixed">
+    <parent link="$(arg prefix)base_link"/>
+    <child link="$(arg prefix)camera_mast_link"/>
+    <origin xyz="${mast_cam_x} 0 0.31" rpy="0 0 0" />
+  </joint>
+
+  <link name="$(arg prefix)aruco_camera_link">
+    <visual>
+      <geometry>
+        <box size="0.03 0.09 0.03" />
+      </geometry>
+      <material name="mast_black">
+        <color rgba="0.1 0.1 0.1 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="0.03 0.09 0.03" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.05" />
+      <inertia ixx="1e-5" ixy="0" ixz="0" iyy="1e-5" iyz="0" izz="1e-5" />
+    </inertial>
+  </link>
+
+  <joint name="$(arg prefix)aruco_camera_joint" type="fixed">
+    <parent link="$(arg prefix)base_link"/>
+    <child link="$(arg prefix)aruco_camera_link"/>
+    <origin xyz="${mast_cam_x} 0 ${mast_cam_z}" rpy="0 0 0" />
+  </joint>
+
+  <link name="$(arg prefix)aruco_camera_optical_frame" />
+
+  <joint name="$(arg prefix)aruco_camera_optical_joint" type="fixed">
+    <parent link="$(arg prefix)aruco_camera_link"/>
+    <child link="$(arg prefix)aruco_camera_optical_frame"/>
+    <origin xyz="0 0 0" rpy="${-pi/2} 0 ${-pi/2}" />
+  </joint>
+
+  <gazebo reference="$(arg prefix)aruco_camera_link">
+    <sensor name="aruco_camera" type="camera">
+      <always_on>1</always_on>
+      <update_rate>15</update_rate>
+      <visualize>false</visualize>
+      <topic>$(arg namespace)/aruco_camera/image_raw</topic>
+      <gz_frame_id>$(arg prefix)aruco_camera_optical_frame</gz_frame_id>
+      <camera name="aruco_camera">
+        <camera_info_topic>$(arg namespace)/aruco_camera/camera_info</camera_info_topic>
+        <horizontal_fov>1.2</horizontal_fov>
+        <image>
+          <width>640</width>
+          <height>480</height>
+          <format>R8G8B8</format>
+        </image>
+        <clip>
+          <near>0.05</near>
+          <far>60.0</far>
+        </clip>
+        <noise>
+          <type>gaussian</type>
+          <mean>0.0</mean>
+          <stddev>0.007</stddev>
+        </noise>
+      </camera>
+    </sensor>
+  </gazebo>
+
+</robot>
