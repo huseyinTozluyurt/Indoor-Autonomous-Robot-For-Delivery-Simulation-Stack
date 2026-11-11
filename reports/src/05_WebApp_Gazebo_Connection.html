@@ -1,0 +1,112 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Web Application ↔ Gazebo Connection</title>
+<style>
+@page { size: A4; margin: 18mm 16mm 18mm 16mm; }
+* { box-sizing: border-box; }
+body { font-family: 'DejaVu Sans', 'Liberation Sans', Arial, sans-serif; font-size: 10.2pt;
+       line-height: 1.45; color: #1d2430; }
+.cover { border-bottom: 3px solid #1f5f8b; padding-bottom: 10px; margin-bottom: 16px; }
+.cover .kicker { color: #1f5f8b; font-weight: bold; letter-spacing: .06em; font-size: 9pt; text-transform: uppercase; }
+.cover h1 { font-size: 22pt; margin: 4px 0 6px 0; color: #102a43; }
+.cover .meta { color: #52606d; font-size: 9pt; }
+h2 { font-size: 13.5pt; color: #1f5f8b; margin: 18px 0 6px 0; border-bottom: 1px solid #d9e2ec; padding-bottom: 2px; page-break-after: avoid; }
+h3 { font-size: 11pt; color: #243b53; margin: 12px 0 4px 0; page-break-after: avoid; }
+p { margin: 5px 0 7px 0; text-align: justify; }
+ul, ol { margin: 4px 0 8px 0; padding-left: 20px; }
+li { margin: 2px 0; }
+code { font-family: 'DejaVu Sans Mono', monospace; font-size: 8.6pt; background: #f0f4f8; padding: 0 3px; border-radius: 2px; }
+pre { font-family: 'DejaVu Sans Mono', monospace; font-size: 8.2pt; background: #f5f7fa; border: 1px solid #d9e2ec;
+      padding: 7px 9px; border-radius: 3px; white-space: pre-wrap; page-break-inside: avoid; }
+table { border-collapse: collapse; width: 100%; margin: 6px 0 10px 0; font-size: 8.8pt; page-break-inside: avoid; }
+th { background: #1f5f8b; color: white; text-align: left; padding: 4px 6px; font-weight: bold; }
+td { border-bottom: 1px solid #d9e2ec; padding: 3px 6px; vertical-align: top; }
+tr:nth-child(even) td { background: #f7f9fb; }
+figure { margin: 10px 0 12px 0; text-align: center; page-break-inside: avoid; }
+figure img { max-width: 100%; border: 1px solid #d9e2ec; }
+figure.half img { max-width: 62%; }
+figure.third img { max-width: 45%; }
+figcaption { font-size: 8.6pt; color: #52606d; margin-top: 3px; text-align: center; }
+.row { display: flex; gap: 10px; page-break-inside: avoid; }
+.row figure { flex: 1; }
+.box { background: #eef6fb; border-left: 4px solid #1f5f8b; padding: 7px 10px; margin: 8px 0; page-break-inside: avoid; }
+.box.warn { background: #fff8e6; border-left-color: #d69e2e; }
+.kpi { display: flex; gap: 8px; margin: 8px 0 10px 0; page-break-inside: avoid; }
+.kpi div { flex: 1; border: 1px solid #d9e2ec; border-radius: 4px; padding: 6px 8px; text-align: center; }
+.kpi b { display: block; font-size: 15pt; color: #1f5f8b; }
+.kpi span { font-size: 8pt; color: #52606d; }
+.toc { font-size: 9.2pt; columns: 2; margin-bottom: 6px; }
+.pb { page-break-before: always; }
+.small { font-size: 8.6pt; color: #52606d; }
+svg text { font-family: 'DejaVu Sans', Arial, sans-serif; }
+</style></head><body>
+<div class="cover"><div class="kicker">Indoor Autonomous Delivery Robot · Report 5 of 6</div>
+<h1>Web Application ↔ Gazebo Connection</h1><div class="meta">web_bridge: serving the robot REST API from the ROS 2 simulation, missions, live status and manual control<br>Hüseyin Tozluyurt · ROS 2 Jazzy / Gazebo Harmonic simulation stack · November 2026</div></div>
+
+<h2>1. Goal: one web app for simulation and hardware</h2>
+<p>The DeliveryBot backend was first written for the physical robot: it called a small REST API on the Raspberry Pi
+(port 5000). To test the whole service – ordering, dispatch, navigation, status – without hardware, the simulation had to
+look exactly like that robot from the outside. The ROS 2 node <b><code>web_bridge</code></b> does this: it is the delivery
+navigator (same map, same ArUco EKF localisation, same Dijkstra/Held-Karp planning, same marker check) wrapped in an
+HTTP server that serves the Pi's API. Switching between Gazebo and the real robot is a single setting in
+<i>Admin → Robot Settings</i> (<b>Use Gazebo Simulation</b> = <code>127.0.0.1:5000</code>).</p>
+<pre>React :5173 → Spring Boot :8080 + MySQL → (HTTP) → web_bridge :5000 → (ROS 2) → Gazebo RB1 robot
+web_bridge → POST /api/orders/robot-status → Spring Boot → (2 s polling) → every open page</pre>
+<h2>2. Components</h2><table><tr><th>Part</th><th>What it does</th></tr><tr><td>Gazebo Harmonic, world <code>two_buildings</code></td><td>RB1 robot with lidar, IMU, mast camera, diff drive; ArUco markers on walls and tables</td></tr><tr><td><code>ros_gz_bridge</code> (<code>config/gz_bridge.yaml</code>)</td><td>Gazebo → ROS: <code>/clock</code>, lidar scan, IMU, both cameras + camera_info</td></tr><tr><td><code>twist_to_stamped_bridge</code></td><td><code>/cmd_vel</code> (Twist) → <code>/robot/diff_drive_controller/cmd_vel</code> (TwistStamped)</td></tr><tr><td><code>web_bridge</code> (ROS 2 node, Python)</td><td>HTTP API, job queue, mission worker thread, status reporter thread, MJPEG camera stream, map rendering</td></tr><tr><td>Spring Boot <code>RobotApiController</code> + <code>RaspberryPiService</code></td><td>Proxies every robot call, 2 s/5 s timeouts, robot URL from the database</td></tr><tr><td><code>run_web_sim.sh</code> / <code>web_sim.launch.py</code></td><td>Starts Gazebo, web_bridge, backend and frontend with one command (web app delayed 20 s)</td></tr></table><h2>3. Robot REST API served by web_bridge</h2><table><tr><th>Method and path</th><th>Body / result</th></tr><tr><td><code>GET /robot/status</code></td><td>state (idle, busy, manual control…), pose, current and queued orders, last messages</td></tr><tr><td><code>GET /robot/points</code></td><td>delivery points of the loaded map: name, ArUco id, x, y</td></tr><tr><td><code>GET /robot/map.png</code>, <code>/robot/map-info</code></td><td>the SLAM map as an image + origin/resolution, points, robot pose and route for the campus map</td></tr><tr><td><code>POST /robot/plan</code></td><td><code>{"stops": [...]}</code> → shortest order, legs, total, and the arrival-order total</td></tr><tr><td><code>POST /robot/mission</code></td><td><code>{"orders": [{"orderID", "orderDbId", "deliveryPoint"}, ...]}</code> → queued as one tour</td></tr><tr><td><code>POST /robot/delivery</code></td><td>one order; point from <code>route</code> or from <code>targetArucoId</code> (legacy table flow)</td></tr><tr><td><code>POST /robot/command</code></td><td>FORWARD/BACKWARD/LEFT/RIGHT, STOP, EMERGENCY_STOP, TAKEOVER, RELEASE, RETURN_BASE, RETURN_HOME_NOW, SET_HOME_POSE, RELOCALIZE</td></tr><tr><td><code>GET /robot/sensors/latest</code></td><td>front/left/right/back lidar distance in cm (minus body radius)</td></tr><tr><td><code>GET /robot/camera-stream</code>, <code>/camera-snapshot</code></td><td>MJPEG of <code>/robot/aruco_camera/image_raw</code> at 5 fps, JPEG quality 70</td></tr></table><figure><svg viewBox="0 0 760 360" width="100%" xmlns="http://www.w3.org/2000/svg">
+<defs><marker id="b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#334e68"/></marker></defs>
+<g font-size="11">
+<g font-weight="bold" text-anchor="middle">
+<rect x="10" y="8" width="120" height="26" rx="5" fill="#e3f0fa" stroke="#1f5f8b"/><text x="70" y="26">Operator page</text>
+<rect x="200" y="8" width="130" height="26" rx="5" fill="#e8f5e9" stroke="#2f855a"/><text x="265" y="26">Spring Boot</text>
+<rect x="400" y="8" width="130" height="26" rx="5" fill="#f3e8ff" stroke="#6b46c1"/><text x="465" y="26">web_bridge :5000</text>
+<rect x="610" y="8" width="140" height="26" rx="5" fill="#fff4e5" stroke="#c05621"/><text x="680" y="26">Gazebo robot</text></g>
+<g stroke="#9fb3c8" stroke-dasharray="3,3"><line x1="70" y1="34" x2="70" y2="352"/><line x1="265" y1="34" x2="265" y2="352"/><line x1="465" y1="34" x2="465" y2="352"/><line x1="680" y1="34" x2="680" y2="352"/></g>
+<g stroke="#334e68" stroke-width="1.5" marker-end="url(#b)">
+<line x1="70" y1="60" x2="263" y2="60"/><line x1="265" y1="80" x2="463" y2="80"/><line x1="463" y1="104" x2="267" y2="104"/><line x1="263" y1="120" x2="72" y2="120"/>
+<line x1="70" y1="150" x2="263" y2="150"/><line x1="265" y1="170" x2="463" y2="170"/>
+<line x1="465" y1="196" x2="678" y2="196"/><line x1="678" y1="214" x2="467" y2="214"/>
+<line x1="463" y1="240" x2="267" y2="240"/><line x1="463" y1="290" x2="267" y2="290"/>
+<line x1="72" y1="320" x2="263" y2="320"/><line x1="263" y1="336" x2="72" y2="336"/></g>
+<text x="80" y="55">POST /api/robot/plan (stops)</text><text x="275" y="75">POST /robot/plan</text>
+<text x="275" y="100">order, legs (m), total, given order</text><text x="80" y="116">tour preview on the map</text>
+<text x="80" y="145">POST /api/orders/dispatch-batch</text><text x="275" y="165">POST /robot/mission {orders}</text>
+<text x="475" y="191">/cmd_vel (ROS 2)</text><text x="475" y="230">scan, imu, odom, camera</text>
+<text x="275" y="235">robot-status: Delivering</text>
+<text x="475" y="262" fill="#52606d">… drives the tour, checks markers …</text>
+<text x="275" y="285">Delivered / Failed (per stop)</text>
+<text x="80" y="315">GET /api/orders (every 2 s)</text><text x="80" y="350">live status in shop + operator pages</text>
+</g></svg><figcaption><b>Figure 1.</b> Sequence of one multi-order mission from the operator page to the simulated robot and back.</figcaption></figure>
+<h2>4. Inside web_bridge</h2>
+<ul>
+<li><b>HTTP thread</b> – <code>ThreadingHTTPServer</code> on 0.0.0.0:5000 with CORS headers; requests only put jobs into a queue
+or read state, so they answer immediately.</li>
+<li><b>Mission worker</b> – waits for sensor data, sets the initial pose, then takes <i>all</i> waiting jobs as one batch:
+marks them <i>Delivering</i>, runs <code>run_tour(stops → home)</code> with Held-Karp ordering, and sets each job to
+<i>Delivered</i> or <i>Failed</i> as its stop is reached. Orders that arrive while driving form the next batch.</li>
+<li><b>Status reporter</b> – a separate thread POSTs every job change to <code>{backend_url}/orders/robot-status</code>, so a
+stopped backend never blocks the robot (warnings are rate-limited).</li>
+<li><b>Camera stream</b> – subscribes to the mast camera, JPEG-encodes at most 5 frames/s and serves them as
+<code>multipart/x-mixed-replace</code>.</li>
+<li><b>Map rendering</b> – draws the SLAM map (and optionally the world layout from the <code>.sdf</code>) to PNG once and caches
+it; the robot pose and route are sent as data so the browser can draw them on top.</li>
+</ul>
+<h2>5. Manual control and safety</h2><table><tr><th>Button (Admin → Camera Streaming &amp; Take Control)</th><th>Command</th><th>Effect</th></tr><tr><td>Take control</td><td>TAKEOVER</td><td>Aborts the running leg, keeps unfinished orders as <i>Delivering – Paused</i> and puts them back at the front of the queue</td></tr><tr><td>Arrows / W A S D</td><td>FORWARD … RIGHT</td><td>0.3 m/s or 0.6 rad/s for 0.6 s per press, only in manual mode</td></tr><tr><td>Release robot</td><td>RELEASE</td><td>Leaves manual mode; the worker replans from the current pose and finishes the paused orders</td></tr><tr><td>Emergency stop</td><td>EMERGENCY_STOP</td><td>Stops at once, cancels running and queued orders (<i>Cancelled</i>) – they return to the operator list</td></tr><tr><td>Return to start</td><td>RETURN_HOME_NOW</td><td>Gives orders back and drives home</td></tr></table><div class="row"><figure><img src="../figures/web_camera_take_control.png"><figcaption><b>Figure 2.</b> Admin camera page: live MJPEG from Gazebo, the robot on its SLAM map, and the manual-control pad.</figcaption></figure><figure><img src="../figures/web_control_return_start.png"><figcaption><b>Figure 3.</b> Control page while the robot is sent back to its start point.</figcaption></figure></div><div class="row"><figure><img src="../figures/web_robot_settings.png"><figcaption><b>Figure 4.</b> Robot Settings: <i>Use Gazebo Simulation</i> stores 127.0.0.1:5000, tests the connection and lists the map's delivery points with their ArUco IDs.</figcaption></figure><figure><img src="../figures/web_shop_page.png"><figcaption><b>Figure 5.</b> The shop's campus map is the robot's own SLAM map served by web_bridge – a customer clicks exactly the point the robot drives to.</figcaption></figure></div>
+<h2>6. Running the full stack</h2>
+<pre>cd ~/indoor-delivery-robot/ros2_ws
+./run_web_sim.sh --build          # first time
+./run_web_sim.sh                  # Gazebo + web_bridge (campus_full_map7) + backend + frontend
+./run_web_sim.sh gui:=false rtf:=3.0      # headless, 3x real time
+curl localhost:5000/robot/status          # test the robot API without the web app</pre>
+<p>The world must match the map: <code>campus_full_map7</code> was built in <code>two_buildings</code> (start −17, −17);
+<code>campus6</code> in <code>campus_area</code> (start −25, 0). The backend and frontend start 20 s after Gazebo because Maven,
+Java and Vite starting together can starve Gazebo and make the controller activation time out.</p>
+<h2>7. Problems met and how they were solved</h2><table><tr><th>Problem</th><th>Fix</th></tr><tr><td>Robot controllers timed out at start (<i>Switch controller timed out</i>)</td><td>Delay web app start (<code>webapp_delay:=20</code>), <code>gui:=false</code>, or render on the GPU</td></tr><tr><td>Backend crashed on null values in robot status (<code>Map.of</code>)</td><td>Null-safe maps; robot unreachable → status <i>offline</i> instead of HTTP 500</td></tr><tr><td>Orders only in browser localStorage</td><td>Orders in MySQL with <code>delivery_point</code> and <code>robot_message</code> columns</td></tr><tr><td>Hard-coded Pi IP in the frontend</td><td>All robot calls go through the backend; URL stored in <code>RobotConfig</code></td></tr><tr><td>Table numbers did not match map points</td><td>Tables carry the ArUco ID of their delivery point, or the point name in <i>route</i></td></tr><tr><td>A stopped backend could block the robot</td><td>Status reports sent from their own thread with a 5 s timeout</td></tr></table>
+<h2>8. From simulation to the real robot</h2>
+<p>Because the contract is the HTTP API, moving to hardware means running a service with the same endpoints on the
+Raspberry Pi 4 and entering its IP in Robot Settings; the web app does not change. The cleanest route is to run
+<code>web_bridge</code> itself on the robot with <code>sim:=false</code> and the real sensor topics, so the robot keeps the same
+map, planner and status reporting that were tested in Gazebo.</p>
+<div class="box"><b>Summary.</b> web_bridge makes the Gazebo robot indistinguishable from the real one for the web
+application. The full flow – order on the campus map, operator loads the robot, shortest tour, marker-checked delivery, live
+status for every user, manual take-over and emergency stop – runs end-to-end in simulation with one command.</div>
+<div class="box warn"><b>Open points:</b> the robot API and the status callback have no authentication; add a shared token
+before the robot is on a shared network. Status reaches the browser by 2 s polling; Server-Sent Events would make it instant.</div>
+</body></html>

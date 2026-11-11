@@ -7,6 +7,8 @@ robot delivers. Everything runs first in a **ROS 2 Jazzy / Gazebo Harmonic** sim
 two-building campus and is then moved to the real robot (Raspberry Pi 4), which serves the
 same REST API as the simulation.
 
+**Project website:** <https://huseyintozluyurt.github.io/Indoor-Autonomous-Robot-For-Delivery-Simulation-Stack/> (demo video, figures and the six reports; source in [`site/`](site/)).
+
 ![Operator page: Dijkstra shortest tour on the robot's own SLAM map](docs/images/web_operator_route.png)
 
 ## Contents

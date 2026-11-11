@@ -1,0 +1,114 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Indoor Navigation: SLAM and Localisation</title>
+<style>
+@page { size: A4; margin: 18mm 16mm 18mm 16mm; }
+* { box-sizing: border-box; }
+body { font-family: 'DejaVu Sans', 'Liberation Sans', Arial, sans-serif; font-size: 10.2pt;
+       line-height: 1.45; color: #1d2430; }
+.cover { border-bottom: 3px solid #1f5f8b; padding-bottom: 10px; margin-bottom: 16px; }
+.cover .kicker { color: #1f5f8b; font-weight: bold; letter-spacing: .06em; font-size: 9pt; text-transform: uppercase; }
+.cover h1 { font-size: 22pt; margin: 4px 0 6px 0; color: #102a43; }
+.cover .meta { color: #52606d; font-size: 9pt; }
+h2 { font-size: 13.5pt; color: #1f5f8b; margin: 18px 0 6px 0; border-bottom: 1px solid #d9e2ec; padding-bottom: 2px; page-break-after: avoid; }
+h3 { font-size: 11pt; color: #243b53; margin: 12px 0 4px 0; page-break-after: avoid; }
+p { margin: 5px 0 7px 0; text-align: justify; }
+ul, ol { margin: 4px 0 8px 0; padding-left: 20px; }
+li { margin: 2px 0; }
+code { font-family: 'DejaVu Sans Mono', monospace; font-size: 8.6pt; background: #f0f4f8; padding: 0 3px; border-radius: 2px; }
+pre { font-family: 'DejaVu Sans Mono', monospace; font-size: 8.2pt; background: #f5f7fa; border: 1px solid #d9e2ec;
+      padding: 7px 9px; border-radius: 3px; white-space: pre-wrap; page-break-inside: avoid; }
+table { border-collapse: collapse; width: 100%; margin: 6px 0 10px 0; font-size: 8.8pt; page-break-inside: avoid; }
+th { background: #1f5f8b; color: white; text-align: left; padding: 4px 6px; font-weight: bold; }
+td { border-bottom: 1px solid #d9e2ec; padding: 3px 6px; vertical-align: top; }
+tr:nth-child(even) td { background: #f7f9fb; }
+figure { margin: 10px 0 12px 0; text-align: center; page-break-inside: avoid; }
+figure img { max-width: 100%; border: 1px solid #d9e2ec; }
+figure.half img { max-width: 62%; }
+figure.third img { max-width: 45%; }
+figcaption { font-size: 8.6pt; color: #52606d; margin-top: 3px; text-align: center; }
+.row { display: flex; gap: 10px; page-break-inside: avoid; }
+.row figure { flex: 1; }
+.box { background: #eef6fb; border-left: 4px solid #1f5f8b; padding: 7px 10px; margin: 8px 0; page-break-inside: avoid; }
+.box.warn { background: #fff8e6; border-left-color: #d69e2e; }
+.kpi { display: flex; gap: 8px; margin: 8px 0 10px 0; page-break-inside: avoid; }
+.kpi div { flex: 1; border: 1px solid #d9e2ec; border-radius: 4px; padding: 6px 8px; text-align: center; }
+.kpi b { display: block; font-size: 15pt; color: #1f5f8b; }
+.kpi span { font-size: 8pt; color: #52606d; }
+.toc { font-size: 9.2pt; columns: 2; margin-bottom: 6px; }
+.pb { page-break-before: always; }
+.small { font-size: 8.6pt; color: #52606d; }
+svg text { font-family: 'DejaVu Sans', Arial, sans-serif; }
+</style></head><body>
+<div class="cover"><div class="kicker">Indoor Autonomous Delivery Robot · Report 3 of 6</div>
+<h1>Indoor Navigation: SLAM and Localisation</h1><div class="meta">ArUco landmark EKF-SLAM, autonomous exploration, offline pose-graph correction and map-based localisation<br>Hüseyin Tozluyurt · ROS 2 Jazzy / Gazebo Harmonic simulation stack · November 2026</div></div>
+
+<h2>1. Problem</h2>
+<p>A delivery robot has to answer two questions all the time: <i>what does the building look like</i> (mapping) and
+<i>where am I in it</i> (localisation). Indoors there is no GPS, wheels slip, and long corridors look the same to a
+lidar. This project solves both with an <b>ArUco landmark EKF-SLAM</b>: wheel odometry and the IMU gyro predict the
+motion, the mast camera's ArUco detections correct it, and the 2D lidar draws the occupancy grid. The map is built once by
+an autonomous exploration run and then reused by the delivery navigator, which localises against the same markers.</p>
+<div class="kpi"><div><b>19</b><span>markers mapped by observation (campus_full_map7)</span></div><div><b>242 m</b><span>driven in 21 sim-min, fully autonomous</span></div>
+<div><b>0.39 m</b><span>mean marker error after rigid fit (map shape)</span></div><div><b>17.1 m → 1.7 m</b><span>end drift: wheels only → wheels + gyro</span></div></div>
+<h2>2. Sensors and frames</h2><table><tr><th>Sensor (Gazebo, RB1 base)</th><th>Topic</th><th>Used for</th></tr><tr><td>Diff-drive wheel odometry</td><td>diff_drive_controller</td><td>Distance travelled (EKF prediction)</td></tr><tr><td>IMU gyro</td><td><code>/robot/imu/data</code></td><td>Heading (wheels slip in in-place turns)</td></tr><tr><td>Mast RGB camera 640×480, 69° HFOV</td><td><code>/robot/aruco_camera/image_raw</code></td><td>ArUco range/bearing/facing (EKF update)</td></tr><tr><td>Front 2D lidar</td><td><code>/robot/front_laser/scan</code></td><td>Occupancy grid, obstacle stop, scan matching</td></tr></table><p>The mapper's <code>initial_pose</code> is set to the Gazebo spawn pose ((−17, −17, 0) in two_buildings,
+(−25, 0, 0) in campus_area), so map coordinates equal world coordinates and every saved marker can be compared with the
+world file. All waits and time-outs run on simulation time (<code>/clock</code>), so mapping at 3–10× real time
+(<code>rtf:=</code>) behaves the same as at 1×.</p>
+<h2>3. EKF-SLAM</h2>
+<p><b>State.</b> Robot pose (x, y, θ) plus (x, y) of every marker seen so far; the covariance grows by two rows and
+columns when a new ID appears. Because the marker ID is decoded from the image, data association is exact – there are
+no wrong matches, the main failure mode of feature-based SLAM.</p>
+<p><b>Prediction.</b> Distance from the wheels, heading change from the gyro. The process noise is
+<code>odom_alpha = [0.05, 0.05, 0.06, 0.1]</code> (x and y per metre, yaw per radian turned and per metre). In the mapper the
+gyro is trusted strongly (<code>gyro_noise = 0.0003</code>), so a marker re-sighting can correct the position but cannot
+rotate the whole map – this was the key fix for the rotated maps of the first runs (see Report 6).</p>
+<p><b>Update.</b> Each detection gives range and bearing in base_link (Report 2). The innovation is gated
+(χ² = 13.8) and the noise scales with range/pixels. A marker seen for the first time is initialised from the current pose.
+Bearings are down-weighted while the robot turns and ignored above 0.5 rad/s because camera latency turns into heading
+error. With <code>sync_sensors</code> on, each image and scan is shifted by the robot motion between its time stamp and the
+latest odometry.</p>
+<p><b>Marker facing and delivery points.</b> A weighted average of the measured marker normal gives the direction each
+marker faces. For delivery markers the mapper places a delivery point 2.3 m (or the marker's <code>standoff</code>) in front
+of the marker, facing it – this is the pose the robot drives to.</p>
+<p><b>Occupancy grid.</b> A 0.1 m log-odds grid (+0.85 hit / −0.4 free, clamped ±4) is ray-cast from every lidar scan at
+the EKF pose; a second layer records which walls the camera has looked at from close range. An optional correlative
+scan-to-map matcher (<code>scan_matching</code>) corrects x/y in marker-free corridors; it is off by default in the mapper.</p>
+<h2>4. Autonomous exploration</h2>
+<p>After a 360° start turn the robot repeatedly drives to the cheapest of two goal types, using Dijkstra distances on the
+current map: a <b>frontier</b> (reachable free cell next to unknown space) or a <b>viewpoint</b> 2–3.5 m in front of a wall
+stretch the camera has not yet seen from close range. The second type makes sure every wall – and therefore every marker on
+it – is seen from near, not only mapped by the lidar. Unreachable goals are blacklisted. When nothing is left the robot
+drives home and saves; it also saves every 60 s and on Ctrl+C.</p><figure class=""><img src="../figures/slam_traj_markers.png"><figcaption><b>Figure 1.</b> campus_full_map7. Left: the same run from three pose sources. Wheel odometry alone ends 17.1 m and 16° away from the SLAM pose and leaves the building; wheels + gyro stays within 1.7 m; the EKF adds the marker corrections. Right: SLAM marker estimates (red) against the world-file positions (green); markers 5, 44 and 49 were never detected.</figcaption></figure><figure class=""><img src="../figures/slam_marker_err.png"><figcaption><b>Figure 2.</b> Per-marker position error of campus_full_map7 against the world file, with the EKF's own σ. Markers with σ = 0.3 and no observations were added afterwards for the table delivery points (aruco_landmarks_before_tables.yaml has 19 markers).</figcaption></figure>
+<p>The errors are similar for all markers (1.0–1.9 m) because most of the absolute error is one small rigid
+rotation of the whole map (≈2.6°) about the start point. After removing the best-fit rotation and shift, the
+mean error is 0.39 m (max 0.93 m). For delivery this is what counts: the robot
+localises on the <i>same</i> map it was built with, so a global rotation does not move it away from the delivery points.</p>
+<h2>5. Saved map</h2><table><tr><th>File</th><th>Content</th></tr><tr><td><code>map.pgm</code>, <code>map.yaml</code></td><td>Occupancy grid in Nav2 map_server format (0.1 m)</td></tr><tr><td><code>aruco_landmarks.yaml</code></td><td>Markers (id, name, x, y, yaw, σ, observations), delivery points, start pose</td></tr><tr><td><code>observations.csv</code>, <code>trajectory.csv</code></td><td>Every detection; SLAM, wheel and dead-reckoning poses</td></tr><tr><td><code>scans.npz</code></td><td>Raw scans with poses, for offline correction</td></tr><tr><td><code>map_preview.png</code></td><td>Walls (green = seen by camera), markers, delivery points, path</td></tr></table>
+<h2>6. Offline correction: pose graph</h2>
+<p>For runs spoiled by slip, two offline tools rebuild the map from <code>scans.npz</code>:</p>
+<ul>
+<li><b>optimize_map</b> (<code>map_optimizer.py</code>) – graph SLAM: keyframes every 0.3 m / 10°, odometry edges
+(wheels + gyro), one edge per marker detection, and lidar loop edges from matching each keyframe scan against the map of
+all other parts of the run; solved by robust (Cauchy) Gauss-Newton in three rounds of draw → match → optimise, numpy only.
+Writes into <code>&lt;map&gt;/corrected/</code>.</li>
+<li><b>correct_map</b> – re-aligns a later run on an earlier good map (base first), detects slip events (&gt;3° or
+&gt;0.2 m over 10 scans) and merges. In a 15 % wheel-slip test without gyro, marker errors went from up to 72.7 m to
+within 0.07 m of the base, with 148 slip events found.</li>
+</ul><div class="row"><figure><img src="../figures/map_correction_slip15.png"><figcaption><b>Figure 3.</b> correct_map on a run with 15 % rotational wheel slip: green corrected path, red the run's own SLAM path, orange circles slip events.</figcaption></figure><figure><img src="../figures/aruco_slam_map_before_after.png"><figcaption><b>Figure 4.</b> campus_full_map3: live map (top) and the same recorded data replayed through the fixed mapper (bottom). Green lines are the real walls.</figcaption></figure></div>
+<h2>7. Localisation during delivery</h2>
+<p>The delivery navigator runs the same EKF with the saved markers as <b>fixed beacons</b> (σ 0.05 m) and corrects with
+lidar matching against the saved grid. It starts from <code>home</code>, a named point, an explicit pose, or
+<code>auto</code> (turn until a marker is in view and compute the pose from it). Every few seconds it checks that the scan
+fits the map; if not, <code>recover_pose</code> searches around the current estimate. Obstacles seen by the lidar are kept
+for 30 s only and forgotten after each pose correction, so a pose error cannot permanently close a corridor.</p>
+<h2>8. Lidar-only alternative: slam_toolbox</h2>
+<p>The repository also contains <code>slam_toolbox_ws</code>: the same robot and world mapped with
+<code>slam_toolbox</code> (graph-based lidar SLAM) and saved with <code>map_saver_cli</code>. It produces a clean grid but no
+landmark map or delivery points, and in the 30 m corridor it relies only on scan matching. The ArUco approach was chosen
+for delivery because each delivery point is tied to a physical marker the robot can verify.</p>
+<h2>9. Results and lessons</h2><table><tr><th>Test</th><th>Result</th></tr><tr><td>Offline replica of campus_area, 0.5 % odometry noise</td><td>All 12 markers within 0.14 m; 100 % of walls seen by the camera; 20–31 min sim time; no collisions</td></tr><tr><td>Offline replica, 2 % odometry drift</td><td>Complete, marker errors up to 1.4 m</td></tr><tr><td>Gazebo, campus6 (campus_area)</td><td>12/12 markers, 0.37 m after rigid fit</td></tr><tr><td>Gazebo, campus_full_map7 (two_buildings)</td><td>19 markers observed, 0.39 m after rigid fit, 242 m path</td></tr><tr><td>Mapping at 10× real time</td><td>9.9× achieved, same map quality, no collisions (scan processing capped at 40 Hz wall time)</td></tr></table><div class="box"><b>Lessons.</b> (1) Heading is everything: wheel heading in in-place turns rotated whole rooms;
+the gyro fixed it. (2) Do not let a single landmark re-sighting rotate the map – trust the gyro, let markers correct
+position. (3) Exploration must target what the <i>camera</i> has not seen, not only unknown lidar cells. (4) Keep raw scans
+so a bad run can be repaired offline.</div>
+<div class="box warn"><b>For the real robot:</b> calibrate wheel radius/track and camera, set <code>sim:=false</code> and the
+real topics, keep <code>use_imu</code> on, and add markers in long featureless corridors.</div>
+</body></html>

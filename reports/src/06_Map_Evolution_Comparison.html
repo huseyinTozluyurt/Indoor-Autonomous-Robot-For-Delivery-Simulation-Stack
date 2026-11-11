@@ -1,0 +1,91 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Map Evolution: From the First Map to campus_full_map7</title>
+<style>
+@page { size: A4; margin: 18mm 16mm 18mm 16mm; }
+* { box-sizing: border-box; }
+body { font-family: 'DejaVu Sans', 'Liberation Sans', Arial, sans-serif; font-size: 10.2pt;
+       line-height: 1.45; color: #1d2430; }
+.cover { border-bottom: 3px solid #1f5f8b; padding-bottom: 10px; margin-bottom: 16px; }
+.cover .kicker { color: #1f5f8b; font-weight: bold; letter-spacing: .06em; font-size: 9pt; text-transform: uppercase; }
+.cover h1 { font-size: 22pt; margin: 4px 0 6px 0; color: #102a43; }
+.cover .meta { color: #52606d; font-size: 9pt; }
+h2 { font-size: 13.5pt; color: #1f5f8b; margin: 18px 0 6px 0; border-bottom: 1px solid #d9e2ec; padding-bottom: 2px; page-break-after: avoid; }
+h3 { font-size: 11pt; color: #243b53; margin: 12px 0 4px 0; page-break-after: avoid; }
+p { margin: 5px 0 7px 0; text-align: justify; }
+ul, ol { margin: 4px 0 8px 0; padding-left: 20px; }
+li { margin: 2px 0; }
+code { font-family: 'DejaVu Sans Mono', monospace; font-size: 8.6pt; background: #f0f4f8; padding: 0 3px; border-radius: 2px; }
+pre { font-family: 'DejaVu Sans Mono', monospace; font-size: 8.2pt; background: #f5f7fa; border: 1px solid #d9e2ec;
+      padding: 7px 9px; border-radius: 3px; white-space: pre-wrap; page-break-inside: avoid; }
+table { border-collapse: collapse; width: 100%; margin: 6px 0 10px 0; font-size: 8.8pt; page-break-inside: avoid; }
+th { background: #1f5f8b; color: white; text-align: left; padding: 4px 6px; font-weight: bold; }
+td { border-bottom: 1px solid #d9e2ec; padding: 3px 6px; vertical-align: top; }
+tr:nth-child(even) td { background: #f7f9fb; }
+figure { margin: 10px 0 12px 0; text-align: center; page-break-inside: avoid; }
+figure img { max-width: 100%; border: 1px solid #d9e2ec; }
+figure.half img { max-width: 62%; }
+figure.third img { max-width: 45%; }
+figcaption { font-size: 8.6pt; color: #52606d; margin-top: 3px; text-align: center; }
+.row { display: flex; gap: 10px; page-break-inside: avoid; }
+.row figure { flex: 1; }
+.box { background: #eef6fb; border-left: 4px solid #1f5f8b; padding: 7px 10px; margin: 8px 0; page-break-inside: avoid; }
+.box.warn { background: #fff8e6; border-left-color: #d69e2e; }
+.kpi { display: flex; gap: 8px; margin: 8px 0 10px 0; page-break-inside: avoid; }
+.kpi div { flex: 1; border: 1px solid #d9e2ec; border-radius: 4px; padding: 6px 8px; text-align: center; }
+.kpi b { display: block; font-size: 15pt; color: #1f5f8b; }
+.kpi span { font-size: 8pt; color: #52606d; }
+.toc { font-size: 9.2pt; columns: 2; margin-bottom: 6px; }
+.pb { page-break-before: always; }
+.small { font-size: 8.6pt; color: #52606d; }
+svg text { font-family: 'DejaVu Sans', Arial, sans-serif; }
+</style></head><body>
+<div class="cover"><div class="kicker">Indoor Autonomous Delivery Robot · Report 6 of 6</div>
+<h1>Map Evolution: From the First Map to campus_full_map7</h1><div class="meta">Comparative, quantitative review of every ArUco SLAM mapping run in the simulation<br>Hüseyin Tozluyurt · ROS 2 Jazzy / Gazebo Harmonic simulation stack · November 2026</div></div>
+
+<h2>1. What this report compares</h2>
+<p>Between 4 and 8 November 2026 the ArUco SLAM mapper was run 13 times (plus one empty folder,
+<code>campus_full_map2</code>), first in the two-room <code>campus_area</code> world and then in the larger
+<code>two_buildings</code> campus. Each run left a complete map folder in <code>~/ros2_jazzy_ws/maps</code>. Because the
+mapper starts at the Gazebo spawn pose, map coordinates equal world coordinates, so every map can be scored objectively
+against the marker positions in the world files (<code>aruco_markers.yaml</code>, <code>aruco_markers_two_buildings.yaml</code>).
+This report measures each map the same way and explains which change in the software caused each step.</p>
+<div class="kpi"><div><b>53 m → 1.4 m</b><span>mean absolute marker error, first → final</span></div>
+<div><b>100° → 2.6°</b><span>global map rotation</span></div>
+<div><b>10.2 m → 0.39 m</b><span>shape error after rigid fit</span></div>
+<div><b>1007 m → 242 m</b><span>path driven to finish the map</span></div></div>
+<h2>2. Method</h2>
+<ul>
+<li><b>Absolute error</b> – distance between each observed marker in <code>aruco_landmarks.yaml</code> and its true pose
+(markers added by hand with 0 observations are left out).</li>
+<li><b>Shape error</b> – the same after the best 2-D rigid transform (rotation + translation, SVD/Kabsch). It shows whether the
+map is <i>internally</i> right; this is what matters for navigation, because the robot localises on the same map.</li>
+<li><b>Global rotation</b> – the angle of that best-fit transform.</li>
+<li>Coverage (markers found), driven path length and simulated time from <code>trajectory.csv</code>. Script:
+<code>reports/src/scripts/metrics.py</code> and <code>align.py</code>.</li>
+</ul>
+<h2>3. All runs</h2><table><tr><th>Map</th><th>Created</th><th>World</th><th>Markers</th><th>Abs. err (m)</th><th>Shape err (m)</th><th>Rot. (°)</th><th>Path (m)</th><th>Sim min</th></tr><tr><td><b>campus</b></td><td>11-04 20:54</td><td>campus_area</td><td>12/12</td><td>53.41</td><td>10.17</td><td>100.4</td><td>1007</td><td>62.5</td></tr><tr><td><b>campus2</b></td><td>11-04 22:44</td><td>campus_area</td><td>2/12</td><td>1.03</td><td>–</td><td>–</td><td>0</td><td>0.2</td></tr><tr><td><b>campus3</b></td><td>11-04 22:52</td><td>campus_area</td><td>2/12</td><td>0.90</td><td>–</td><td>–</td><td>0</td><td>0.2</td></tr><tr><td><b>campus4</b></td><td>11-04 23:13</td><td>campus_area</td><td>5/12</td><td>0.34</td><td>0.18</td><td>1.3</td><td>221</td><td>14.5</td></tr><tr><td><b>campus5</b></td><td>11-05 00:01</td><td>campus_area</td><td>11/12</td><td>0.63</td><td>0.32</td><td>0.8</td><td>742</td><td>44.1</td></tr><tr><td><b>campus6</b></td><td>11-05 00:38</td><td>campus_area</td><td>12/12</td><td>1.61</td><td>0.37</td><td>2.4</td><td>491</td><td>29.6</td></tr><tr><td><b>campus_full_map</b></td><td>11-05 04:08</td><td>two_buildings</td><td>31/32</td><td>4.81</td><td>0.24</td><td>9.1</td><td>467</td><td>32.6</td></tr><tr><td><b>campus_full_map1</b></td><td>11-07 18:41</td><td>two_buildings</td><td>0/32</td><td>–</td><td>–</td><td>–</td><td>0</td><td>0.0</td></tr><tr><td><b>campus_full_map3</b></td><td>11-07 19:44</td><td>two_buildings</td><td>30/32</td><td>4.25</td><td>0.66</td><td>7.7</td><td>464</td><td>30.9</td></tr><tr><td><b>campus_full_map4</b></td><td>11-07 21:18</td><td>two_buildings</td><td>32/32</td><td>1.81</td><td>1.34</td><td>0.7</td><td>489</td><td>32.8</td></tr><tr><td><b>campus_full_map5</b></td><td>11-07 22:02</td><td>two_buildings</td><td>11/32</td><td>2.20</td><td>0.59</td><td>1.9</td><td>129</td><td>10.2</td></tr><tr><td><b>campus_full_map6</b></td><td>11-07 23:39</td><td>two_buildings</td><td>0/32</td><td>–</td><td>–</td><td>–</td><td>1</td><td>1.0</td></tr><tr><td><b>campus_full_map7</b></td><td>11-08 00:16</td><td>two_buildings</td><td>19/32</td><td>1.35</td><td>0.39</td><td>2.6</td><td>242</td><td>20.9</td></tr></table><figure class=""><img src="../figures/evo_metrics.png"><figcaption><b>Figure 1.</b> Error, rotation and coverage of every complete or partial run (aborted runs left out). The dashed line separates the two worlds. Absolute error (log scale) is dominated by rotation; the shape error shows the internal quality.</figcaption></figure><figure class="half"><img src="../figures/evo_effort.png"><figcaption><b>Figure 2.</b> Driven path and simulated time per run. The final map needed the least driving of all full two_buildings runs.</figcaption></figure><h2>4. Stage 1 – campus_area (4–5 November)</h2><figure class=""><img src="../figures/evo_campus_area.png"><figcaption><b>Figure 3.</b> campus_area maps in order. Green walls were seen by the camera, red dots are markers, stars delivery points, blue the driven path.</figcaption></figure><p><b>campus.</b> First full autonomous run. All 12 markers found, but heading from slipping wheels in in-place turns made each pass of a room come out rotated: overlapping copies of both rooms.</p><p><b>campus2.</b> Aborted after 14 s (test of the new scan recording, <code>scans.npz</code>).</p><p><b>campus3.</b> Aborted after 14 s (same test).</p><p><b>campus4.</b> Partial run (left room + corridor) after switching heading to the IMU gyro: first clean, straight geometry.</p><p><b>campus5.</b> Both rooms, 11/12 markers. Walls in the right room are doubled (small residual heading error). Live and post-corrected versions saved.</p><p><b>campus6.</b> 12/12 markers, single clean walls in both rooms. Reference map for campus_area.</p><figure class="half"><img src="../figures/offline_test_15pct_slip_gyro.png"><figcaption><b>Figure 4.</b> Offline replica test with 15 % rotational wheel slip: the same failure as the first <code>campus</code> map – each room is drawn several times at different angles. This test led to using the gyro for heading and to the slip correction tools.</figcaption></figure><div class="box"><b>What changed:</b> heading from the IMU gyro instead of the wheels (<code>use_imu</code>), slower
+turns while mapping (0.45 rad/s), and recording raw scans for offline correction. Result: from a shattered map
+(53 m mean error) to campus6 with all markers and 0.37 m shape error.</div><h2>5. Stage 2 – two_buildings (5–8 November)</h2><figure class=""><img src="../figures/evo_two_buildings.png"><figcaption><b>Figure 5.</b> two_buildings maps in order: campus_full_map, 3, 4, 5 and the final 7.</figcaption></figure><p><b>campus_full_map.</b> First map of the larger two_buildings world (32 markers, tables, ring corridor). Shape good, but the whole map is rotated ≈9°.</p><p><b>campus_full_map1.</b> Aborted at start (no trajectory).</p><p><b>campus_full_map3.</b> Rotated ≈8° with ghost walls in building B: marker re-sightings were still allowed to turn the heading.</p><p><b>campus_full_map4.</b> After the "spin fix" (gyro trusted, markers correct position only): rotation gone (0.7°), all 32 markers, but local distortions remain (1.3 m after rigid fit).</p><p><b>campus_full_map5.</b> Building A only, used to develop the post-run pose-graph correction (online vs corrected path: mean 1.78 m apart).</p><p><b>campus_full_map6.</b> Aborted after 61 s.</p><p><b>campus_full_map7.</b> Final map: single sharp walls everywhere, 19 markers observed + 10 table markers added afterwards, shortest run (242 m). Used by the web app.</p><div class="row"><figure><img src="../figures/two_buildings_spin_fix.png"><figcaption><b>Figure 6.</b> The "spin fix": previous mapper (top), live map while driving with the fix (middle), and after the final correction (bottom).</figcaption></figure><figure><img src="../figures/campus_full_map5_fix.png"><figcaption><b>Figure 7.</b> campus_full_map5 live (top, bent building A) and re-processed with the fixed mapper (bottom) against the true walls (green).</figcaption></figure></div><figure class="third"><img src="../figures/aruco_slam_map_before_after.png"><figcaption><b>Figure 8.</b> campus_full_map3: live map (top) and the same recorded data through the fixed mapper (bottom).</figcaption></figure><div class="box"><b>What changed:</b> (1) the gyro is trusted strongly in the EKF (<code>gyro_noise 0.0003</code>) so a marker
+seen again corrects the <i>position</i> but can no longer rotate the map; (2) marker bearings are down-weighted while turning and
+ignored above 0.5 rad/s; (3) sensor time stamps are synchronised with the motion (<code>sync_sensors</code>) for runs faster than real
+time; (4) exploration targets walls the camera has not yet seen from close range, so fewer passes are needed. The rotation fell
+from 9° to under 3°, and the final run drove 242 m instead of ≈470–490 m.</div><figure class=""><img src="../figures/campus_full_map7_preview.png"><figcaption><b>Figure 9.</b> The final map campus_full_map7 used by the web application and the delivery navigator.</figcaption></figure>
+<h2>6. First vs. last map</h2><table><tr><th></th><th>campus (first)</th><th>campus6 (best campus_area)</th><th>campus_full_map (first two_buildings)</th><th>campus_full_map7 (final)</th></tr><tr><td>Markers observed</td><td>12/12</td><td>12/12</td><td>31/32</td><td>19/32 (+10 added)</td></tr><tr><td>Mean absolute error</td><td>53.4 m</td><td>1.61 m</td><td>4.81 m</td><td>1.35 m</td></tr><tr><td>Max absolute error</td><td>114.1 m</td><td>2.90 m</td><td>9.68 m</td><td>1.89 m</td></tr><tr><td>Shape error (rigid fit)</td><td>10.2 m</td><td>0.37 m</td><td>0.24 m</td><td>0.39 m</td></tr><tr><td>Global rotation</td><td>100°</td><td>2.4°</td><td>9.1°</td><td>2.6°</td></tr><tr><td>Walls</td><td>multiple rotated copies</td><td>single, straight</td><td>single, slightly doubled in B</td><td>single, sharp</td></tr><tr><td>Path / sim time</td><td>1007 m / 63 min</td><td>491 m / 30 min</td><td>467 m / 33 min</td><td>242 m / 21 min</td></tr><tr><td>Usable for delivery</td><td>no</td><td>yes</td><td>yes, rotated</td><td>yes – in production</td></tr></table>
+<h2>7. Observations</h2>
+<ul>
+<li><b>Heading was the dominant error source</b>, not marker detection. Every big improvement came from how heading is
+estimated (gyro instead of wheels, gyro over marker bearings).</li>
+<li><b>Absolute error and usefulness differ.</b> campus_full_map has a smaller shape error (0.24 m)
+than map7 (0.39 m) but is rotated 9°; map7 has sharper walls, which matters for lidar localisation and
+planning through doors.</li>
+<li><b>Coverage vs. marker count.</b> map7 observed 19 of 32 markers directly: the table markers face inward and were added
+afterwards from the table layout (<code>aruco_landmarks_before_tables.yaml</code> holds the observed-only version). Markers 5,
+44 and 49 were never detected and could be added in a short teleoperated top-up run.</li>
+<li><b>Short aborted runs</b> (campus2/3, map1, map6) were start-up tests of new features and are not maps.</li>
+</ul>
+<div class="box"><b>Conclusion.</b> Over 13 runs the map went from unusable (rooms drawn several times, 53 m mean
+error) to campus_full_map7, a clean map of a 70 × 45 m two-building campus with sub-0.4 m internal consistency, built
+autonomously in 21 simulated minutes and now used for every delivery in the web application.</div>
+<div class="box warn"><b>Next:</b> a top-up run for the three missing markers; run <code>optimize_map</code> on map7 and compare
+the corrected version with the same metrics; repeat the protocol on the real robot with a tape-measured marker survey as ground
+truth.</div>
+</body></html>

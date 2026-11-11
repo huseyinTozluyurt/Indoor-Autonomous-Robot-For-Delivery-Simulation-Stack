@@ -1,0 +1,111 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Dijkstra Shortest Path and Tour Planning</title>
+<style>
+@page { size: A4; margin: 18mm 16mm 18mm 16mm; }
+* { box-sizing: border-box; }
+body { font-family: 'DejaVu Sans', 'Liberation Sans', Arial, sans-serif; font-size: 10.2pt;
+       line-height: 1.45; color: #1d2430; }
+.cover { border-bottom: 3px solid #1f5f8b; padding-bottom: 10px; margin-bottom: 16px; }
+.cover .kicker { color: #1f5f8b; font-weight: bold; letter-spacing: .06em; font-size: 9pt; text-transform: uppercase; }
+.cover h1 { font-size: 22pt; margin: 4px 0 6px 0; color: #102a43; }
+.cover .meta { color: #52606d; font-size: 9pt; }
+h2 { font-size: 13.5pt; color: #1f5f8b; margin: 18px 0 6px 0; border-bottom: 1px solid #d9e2ec; padding-bottom: 2px; page-break-after: avoid; }
+h3 { font-size: 11pt; color: #243b53; margin: 12px 0 4px 0; page-break-after: avoid; }
+p { margin: 5px 0 7px 0; text-align: justify; }
+ul, ol { margin: 4px 0 8px 0; padding-left: 20px; }
+li { margin: 2px 0; }
+code { font-family: 'DejaVu Sans Mono', monospace; font-size: 8.6pt; background: #f0f4f8; padding: 0 3px; border-radius: 2px; }
+pre { font-family: 'DejaVu Sans Mono', monospace; font-size: 8.2pt; background: #f5f7fa; border: 1px solid #d9e2ec;
+      padding: 7px 9px; border-radius: 3px; white-space: pre-wrap; page-break-inside: avoid; }
+table { border-collapse: collapse; width: 100%; margin: 6px 0 10px 0; font-size: 8.8pt; page-break-inside: avoid; }
+th { background: #1f5f8b; color: white; text-align: left; padding: 4px 6px; font-weight: bold; }
+td { border-bottom: 1px solid #d9e2ec; padding: 3px 6px; vertical-align: top; }
+tr:nth-child(even) td { background: #f7f9fb; }
+figure { margin: 10px 0 12px 0; text-align: center; page-break-inside: avoid; }
+figure img { max-width: 100%; border: 1px solid #d9e2ec; }
+figure.half img { max-width: 62%; }
+figure.third img { max-width: 45%; }
+figcaption { font-size: 8.6pt; color: #52606d; margin-top: 3px; text-align: center; }
+.row { display: flex; gap: 10px; page-break-inside: avoid; }
+.row figure { flex: 1; }
+.box { background: #eef6fb; border-left: 4px solid #1f5f8b; padding: 7px 10px; margin: 8px 0; page-break-inside: avoid; }
+.box.warn { background: #fff8e6; border-left-color: #d69e2e; }
+.kpi { display: flex; gap: 8px; margin: 8px 0 10px 0; page-break-inside: avoid; }
+.kpi div { flex: 1; border: 1px solid #d9e2ec; border-radius: 4px; padding: 6px 8px; text-align: center; }
+.kpi b { display: block; font-size: 15pt; color: #1f5f8b; }
+.kpi span { font-size: 8pt; color: #52606d; }
+.toc { font-size: 9.2pt; columns: 2; margin-bottom: 6px; }
+.pb { page-break-before: always; }
+.small { font-size: 8.6pt; color: #52606d; }
+svg text { font-family: 'DejaVu Sans', Arial, sans-serif; }
+</style></head><body>
+<div class="cover"><div class="kicker">Indoor Autonomous Delivery Robot · Report 4 of 6</div>
+<h1>Dijkstra Shortest Path and Tour Planning</h1><div class="meta">Clearance-weighted grid Dijkstra, Held-Karp ordering of multi-stop deliveries, and measured results on the SLAM map<br>Hüseyin Tozluyurt · ROS 2 Jazzy / Gazebo Harmonic simulation stack · November 2026</div></div>
+
+<h2>1. Two shortest-path problems</h2>
+<p>A delivery mission has two layers. <b>Where to drive between two points</b> is a shortest-path problem on the map
+grid, solved with <b>Dijkstra's algorithm</b>. <b>In which order to visit several delivery points</b> is a travelling-salesman
+problem on top of it, solved exactly with <b>Held-Karp dynamic programming</b> on the Dijkstra distance matrix. Both run in
+<code>delivery_navigator.py</code> and behind the web app's <code>/robot/plan</code> and <code>/robot/mission</code>.</p>
+<div class="kpi"><div><b>291 → 176</b><span>tour cost: arrival order → optimal (6 stops)</span></div><div><b>−39 %</b><span>driving saved</span></div>
+<div><b>132 ms</b><span>one full Dijkstra tree, 230×360 grid</span></div><div><b>8 ms</b><span>exact order for 6 stops</span></div></div>
+<h2>2. From SLAM map to planning graph</h2>
+<ol>
+<li>The saved 0.1 m occupancy grid is down-sampled to <b>0.2 m cells</b> (here 230×360 cells for
+campus_full_map7).</li>
+<li>A distance transform on the <i>full-resolution</i> map gives every cell its <b>clearance</b> – distance to the nearest
+wall – taking the worst point inside the cell, so thin or doubled walls do not eat corridor cells.</li>
+<li>Cells with clearance below the <b>robot radius (0.45 m)</b>, and unknown cells, are blocked.</li>
+<li>Free cells get a cost 1 + w·t² with w = 4 and t rising from 0 at 1.0 m clearance to 1 at the robot radius. The cheapest
+path therefore keeps to the middle of corridors and doors instead of grazing walls.</li>
+<li>Each cell is connected to its 8 neighbours; an edge costs step length × mean cost of the two cells (1 or √2 times
+0.2 m).</li>
+</ol><figure class=""><img src="../figures/dij_costmap.png"><figcaption><b>Figure 1.</b> campus_full_map7. Left: per-cell planning cost (bright = close to a wall, dark grey = blocked). Right: one full Dijkstra run from home gives the cost-to-reach of every cell – this single tree answers "how far to any delivery point" at once.</figcaption></figure>
+<h2>3. Dijkstra's algorithm as implemented</h2>
+<pre>g[start] = 0, all other g = ∞; push (0, start) on a binary heap
+while heap not empty:
+    pop cell i with the smallest g; skip if already closed; close it
+    for each of the 8 neighbours j (not blocked, not closed):
+        ng = g[i] + step(i,j) · ½(cost[i] + cost[j])
+        if ng &lt; g[j]: g[j] = ng; parent[j] = i; push (ng, j)
+path = follow parent[] back from the goal</pre>
+<p><code>PlanningGrid._search</code> uses Python's <code>heapq</code> with lazy deletion, so the run time is
+O(E log V) on the grid. With a goal and the octile heuristic the same function becomes A*; the navigator uses the pure
+Dijkstra form because one run from a point returns the whole tree (<code>dijkstra_tree</code>), from which the cost and path to
+<i>every</i> stop are read without searching again.</p><table><tr><th>Same query: home → b_delivery_point_3</th><th>Time</th><th>Path length</th></tr><tr><td>Dijkstra (no heuristic, stops at goal)</td><td>115 ms</td><td>71.5 m</td></tr><tr><td>A* (octile heuristic)</td><td>56 ms</td><td>71.5 m</td></tr></table><p>Both return the identical path; A* explores fewer cells for one goal, but for tours the full Dijkstra tree is
+cheaper than one A* per pair of points.</p>
+<h3>Robustness rules around the planner</h3>
+<ul>
+<li>Replan from the current pose every 15 s and after every pose correction.</li>
+<li>A goal too close to a wall or table is moved to the nearest reachable cell with room (logged as "stopped x m before").</li>
+<li>Lidar obstacles are added with their own clearance for 30 s; if no path is found the planner relaxes step by step
+(drop remembered obstacles → 0.1 m less margin → allow unknown cells).</li>
+<li>The path is followed with pure pursuit; an obstacle closer than the stop distance halts the robot and, if it stays
+more than 2 s, is put into the map and planned around.</li>
+</ul>
+<h2>4. Visiting order: Held-Karp</h2>
+<p>For a mission with start A, stops x₁…x<sub>k</sub> and end B, one Dijkstra tree from A and from every stop fills the
+(k+2)×(k+2) matrix of real driving costs. Held-Karp then finds the cheapest open path A → all stops → B exactly:</p>
+<pre>best[{x_i}, i] = D[A, x_i]
+best[S ∪ {j}, j] = min over i in S of best[S, i] + D[x_i, x_j]
+answer = min over i of best[all, i] + D[x_i, B]   (back-pointers give the order)</pre>
+<p>This is O(k²·2<sup>k</sup>) instead of O(k!) for trying every order. The navigator uses it up to 12 stops and switches
+to nearest-neighbour + 2-opt above that.</p>
+<h2>5. Experiment on the final map</h2>
+<p>Six delivery points of campus_full_map7, start and end at home, listed in "order of arrival":
+<code>a_delivery_point_2</code>, <code>b_delivery_point_3</code>, <code>r_delivery_point_1</code>, <code>b_delivery_point_2</code>, <code>a_delivery_point_7</code>, <code>c_table_north</code>. The planner and ordering code were imported unchanged from the
+package and run offline on the saved map (script <code>reports/src/scripts/dij.py</code>).</p><table><tr><th>Method</th><th>Tour cost</th><th>vs. optimum</th></tr><tr><td>Order of arrival (no optimisation)</td><td>290.7</td><td>+65 %</td></tr><tr><td>Nearest neighbour</td><td>176.5</td><td>+0.3 %</td></tr><tr><td>Nearest neighbour + 2-opt</td><td>176.0</td><td>+0.0 %</td></tr><tr><td>Held-Karp (used)</td><td><b>176.0</b></td><td>optimal</td></tr><tr><td>Brute force over all 720 orders (check)</td><td>176.0</td><td>same as Held-Karp</td></tr></table><p>Optimal order: home → a_delivery_point_2 → a_delivery_point_7 → c_table_north → r_delivery_point_1 → b_delivery_point_3 → b_delivery_point_2 → home. Costs are in cost-weighted metres, i.e. path length inflated slightly near walls, so they are a little above the geometric length.</p><figure class=""><img src="../figures/dij_tour_compare.png"><figcaption><b>Figure 2.</b> The same six stops driven in arrival order (left) and in the Held-Karp order (right), each leg drawn from the Dijkstra trees on the SLAM map.</figcaption></figure><h3>Why a map-based distance is needed</h3>
+<table><tr><th>From home to</th><th>Dijkstra cost</th><th>Straight line (m)</th><th>Ratio</th></tr><tr><td><code>a_delivery_point_2</code></td><td>29.5</td><td>27.6</td><td>1.07</td></tr><tr><td><code>b_delivery_point_3</code></td><td>71.9</td><td>58.8</td><td>1.22</td></tr><tr><td><code>r_delivery_point_1</code></td><td>50.2</td><td>41.2</td><td>1.22</td></tr><tr><td><code>b_delivery_point_2</code></td><td>62.9</td><td>55.8</td><td>1.13</td></tr><tr><td><code>a_delivery_point_7</code></td><td>27.8</td><td>26.6</td><td>1.05</td></tr><tr><td><code>c_table_north</code></td><td>34.8</td><td>28.7</td><td>1.21</td></tr></table>
+<p>Walls make the real distance 5–25 % longer than the straight line, and not by the same factor for every point, so
+ordering by straight-line distance can choose the wrong tour.</p><figure class="half"><img src="../figures/dij_scaling.png"><figcaption><b>Figure 3.</b> Run time of the exact ordering. Held-Karp needs 161 ms for 12 stops; brute force already takes 1.4 s for 9 stops and would take hours for 12.</figcaption></figure><div class="row"><figure><img src="../figures/delivery_gui_mission.png"><figcaption><b>Figure 4.</b> Delivery GUI: a multi-stop mission typed as "3 4 6 7 5"; the GUI shows the shortest order, each leg and the total compared with the typed order.</figcaption></figure><figure><img src="../figures/web_operator_route.png"><figcaption><b>Figure 5.</b> Web operator page: the same planner behind <code>/robot/plan</code> shows the shortest tour and its saving before the robot starts.</figcaption></figure></div>
+<h2>6. Results in the simulation</h2>
+<ul>
+<li>campus_area offline test: stops right 1, left 4, right 3, left 1, end right 4 – optimal tour 173.8 m against 377.5 m in
+the given order; the robot drove 173 m and stopped 0.11–0.15 m from every pad.</li>
+<li>The navigator went around a box placed in the corridor (stop → obstacle added → replan).</li>
+<li>From the web app the operator's preview and the driven tour use the same code, so the distance shown before loading the
+robot is what the robot drives.</li>
+</ul>
+<div class="box"><b>Summary.</b> Dijkstra on a clearance-weighted grid gives safe, centred paths and – run once per stop – all
+pairwise driving distances. Held-Karp turns those into the provably shortest delivery order in milliseconds for realistic
+loads (≤ 12 stops), saving about 40 % of the driving in the six-stop example.</div>
+</body></html>
