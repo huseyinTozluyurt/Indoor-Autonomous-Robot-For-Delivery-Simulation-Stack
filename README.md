@@ -232,6 +232,26 @@ Useful options (`name:=value`):
 The world must match the map: `campus_full_map7` was made in `two_buildings` (start at
 -17, -17), `campus6` in `campus_area` (start at -25, 0).
 
+### If the robot is missing after a restart
+
+If the simulation was closed in the middle of a run (for example while the robot was
+delivering), the old Gazebo server and the other programs can keep running in the
+background. The next start then shows an empty world without the robot, or the ports
+are busy. Stop the leftovers, then start again:
+
+```bash
+pkill -f "gz sim"; pkill -f "ruby.*gz"; pkill -f web_bridge; pkill -f ros2
+pkill -f spring-boot; pkill -f vite
+ros2 daemon stop
+sleep 3
+pgrep -fa "gz sim"            # must print nothing
+cd ~/indoor-delivery-robot/ros2_ws && ./run_web_sim.sh
+```
+
+An order that was on the robot at that moment stays **Delivering**, because the robot
+never reported back. In **Admin → View Orders** set it to **Preparing**, and it appears on
+the operator page again.
+
 ### Simulation only
 
 ```bash

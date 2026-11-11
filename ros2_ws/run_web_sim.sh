@@ -26,9 +26,19 @@ done
 
 set +u
 source /opt/ros/jazzy/setup.bash
-if [ "$BUILD" = 1 ] || [ ! -x install/indoor_delivery_project/lib/indoor_delivery_project/web_bridge ]; then
-    echo "[run_web_sim] colcon build indoor_delivery_project ..."
-    colcon build --symlink-install --packages-select indoor_delivery_project
+# Fresh clone: the Robotnik RB1 packages are not in src/ yet -> one-time setup
+# (clones dependencies.repos, applies the xacro patch, rosdep install).
+if [ ! -d src/indoor_autonomous_robot/robotnik_description ]; then
+    echo "[run_web_sim] Robotnik RB1 packages missing: running ./setup_workspace.sh --no-build (one time)"
+    ./setup_workspace.sh --no-build
+    BUILD=1
+fi
+if [ "$BUILD" = 1 ] || [ ! -x install/indoor_delivery_project/lib/indoor_delivery_project/web_bridge ] \
+        || [ ! -f install/indoor_delivery_robot_description/share/indoor_delivery_robot_description/package.sh ]; then
+    # --packages-up-to also builds what indoor_delivery_project depends on
+    # (indoor_delivery_robot_description, robotnik_description, robotnik_sensors, ...)
+    echo "[run_web_sim] colcon build indoor_delivery_project and its dependencies ..."
+    colcon build --symlink-install --packages-up-to indoor_delivery_project
 fi
 source install/setup.bash
 
