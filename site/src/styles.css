@@ -316,3 +316,5 @@ p { margin: 0 0 1em; }
 .top-gap { margin-top: 2rem; }
 .stats-note { margin-top: .8rem; }
 @media (max-width: 980px) { .layers { grid-template-columns: 1fr; } }
+.tbl-scroll { overflow-x: auto; }
+.tbl-scroll .tbl { min-width: 560px; }

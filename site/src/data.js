@@ -73,6 +73,60 @@ export const nextSteps = [
   'Repeat the map-accuracy test against a tape-measured marker survey',
 ]
 
+// Embedded software of the physical robot (repo: Indoor-Autonomous-Robot-for-Delivery).
+export const hw = (name) => `${import.meta.env.BASE_URL}hardware/${name}`
+export const embeddedRepo = 'https://github.com/huseyinTozluyurt/Indoor-Autonomous-Robot-for-Delivery'
+
+export const embeddedRoles = [
+  ['Raspberry Pi 4', 'Python, pyserial', 'Menus and missions, timed movement chunks, yaw supervision, lateral-error-guided correction, sensor logging to CSV', 'Seconds'],
+  ['Arduino Uno', 'C++ (Arduino), Wire', 'Parses motion commands, applies per-side trim, integrates gyro yaw, stops and re-aligns when the heading drifts', 'Every loop (milliseconds)'],
+  ['STM32F103C8T6', 'C, STM32 HAL (CubeIDE)', 'Triggers four ultrasonic sensors one at a time, times the echoes in microseconds, streams CSV', 'Microseconds per echo, a line every ~300 ms'],
+]
+
+export const arduinoPins = [
+  ['Left A', 'D5', 'D7 / D8'],
+  ['Left B', 'D3', 'D2 / D4'],
+  ['Right A', 'D6', 'D9 / D10'],
+  ['Right B', 'D11', 'D12 / D13'],
+]
+
+export const motionStates = [
+  ['IDLE', 'Waits for a command. A new F or B stores the current yaw as the target heading.'],
+  ['DRIVE', 'Both sides at the commanded PWM plus a fixed trim (left +20, right −10). The gyro is integrated every loop.'],
+  ['STOP BEFORE', 'Heading error reached 5°: motors stop for 2 s so the robot settles.'],
+  ['CORRECTION TURN', 'Spin back at PWM 200 for 30 ms per degree of error, clamped to 160–450 ms.'],
+  ['PAUSE AFTER', 'Wait 300 ms, then drive the remaining time. Correction time is not counted as driving.'],
+]
+
+export const stm32Pins = [
+  ['Front', 'PB0', 'PA0'],
+  ['Left', 'PB1', 'PA1'],
+  ['Right', 'PB10', 'PA2'],
+  ['Back', 'PB11', 'PA3'],
+]
+
+export const piCommands = [
+  ['F <left> <right> <ms>', 'Forward with left/right PWM (0–255) for ms of driving time, yaw-supervised'],
+  ['B <left> <right> <ms>', 'Backward, the same'],
+  ['L / R <left> <right> <ms>', 'Spin in place, open loop, with its own turn trim'],
+  ['S', 'Stop at once'],
+]
+
+export const firmwareVersions = [
+  ['PID_Raw_Control', 'First attempt: PID on yaw (Kp 3.0, Ki 0, Kd 0.4, base PWM 140, max correction 70) in a fixed 5 s drive / 3 s stop cycle, no serial commands.'],
+  ['Trim Motor Control', 'IMU-free command interface, used on the floor to find the per-side trims that make the robot drive straight.'],
+  ['PID_Integrated_Control (current)', 'Trim-only straight driving with gyro yaw supervision and threshold recovery, driven by serial commands from the Pi. About 700 lines.'],
+]
+
+export const piScripts = [
+  ['guided_motor_control_all_options.py', 'Arduino', 'Main menu: manual drive and turns, a test sequence, and file-guided correction that reads a lateral error between short driving chunks'],
+  ['long_forward_imu_controller.py', 'Arduino', 'Long forward runs in 1 s chunks with a 5° deadband and tiered corrections at 10° / 18°'],
+  ['imu_supervised_forward.py', 'Arduino', '300 ms forward steps for 10 s, small or big corrective turns at 4° / 7°'],
+  ['mission_control.py · _balanced.py', 'Arduino', 'Menus for drive, turns and PID forward, written for an earlier firmware revision'],
+  ['read_stm32_sensors.py', 'STM32', 'Live print of front, left, right and back distances'],
+  ['record_stm32_sensors_csv.py', 'STM32', 'The same, logged with timestamps to sensor_logs/*.csv'],
+]
+
 export const heroStats = [
   { value: '−39 %', label: 'driving saved by the Held-Karp tour (6 stops)' },
   { value: '0.39 m', label: 'internal map error of the final SLAM map' },
