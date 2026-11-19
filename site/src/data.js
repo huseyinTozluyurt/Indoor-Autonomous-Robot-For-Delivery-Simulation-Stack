@@ -8,6 +8,71 @@ export const links = {
   linkedin: 'https://linkedin.com/in/HuseyinTozluyurt',
 }
 
+// The three repositories behind the robot (status checked against each repo's code, Nov 2026).
+const GH = 'https://github.com/huseyinTozluyurt/'
+export const layers = [
+  {
+    n: 1,
+    title: 'Embedded control',
+    repo: 'Indoor-Autonomous-Robot-for-Delivery',
+    url: GH + 'Indoor-Autonomous-Robot-for-Delivery',
+    status: 'Built and run on the robot',
+    ok: true,
+    text: 'Arduino Uno firmware for the four DC motors and the MPU6050 IMU, with hand-tuned motor trims and a yaw-recovery loop. STM32F103 HAL firmware that times four HC-SR04 ultrasonic sensors with a microsecond timer. Raspberry Pi controllers talking to both over UART and USB serial.',
+    stack: ['Arduino C++', 'STM32 HAL', 'UART', 'Python'],
+  },
+  {
+    n: 2,
+    title: 'ROS 2 on the real robot',
+    repo: 'Autonomous_Robot_Dataset_Collection_with_ROS2',
+    url: GH + 'Autonomous_Robot_Dataset_Collection_with_ROS2',
+    status: 'Driven by hand on the robot',
+    ok: true,
+    text: 'ROS 2 nodes on the Raspberry Pi 4: an Arduino bridge (/cmd_vel in, /imu/yaw out), an STM32 bridge (/ultrasonic), a V4L2 camera node, keyboard teleop, and a synchronised camera, command, IMU and ultrasonic logger for behavioural-cloning datasets.',
+    stack: ['ROS 2', 'rclpy', 'V4L2', 'pyserial'],
+  },
+  {
+    n: 3,
+    title: 'Autonomy and the delivery service',
+    repo: 'Indoor-Autonomous-Robot-For-Delivery-Simulation-Stack',
+    url: GH + 'Indoor-Autonomous-Robot-For-Delivery-Simulation-Stack',
+    status: 'Validated in simulation',
+    ok: false,
+    text: 'This page: ArUco EKF-SLAM with autonomous exploration, pose-graph repair, Dijkstra and Held-Karp tour planning, web_bridge, and the React + Spring Boot ordering app, all measured in Gazebo behind the HTTP API the real robot is meant to serve.',
+    stack: ['ROS 2 Jazzy', 'Gazebo Harmonic', 'OpenCV', 'React', 'Spring Boot'],
+  },
+]
+
+// Photo from the ROS 2 repository README (github.com user attachment).
+export const robotPhoto = 'https://github.com/user-attachments/assets/3e61c57c-7b7c-42ba-a0af-e3b6669eef66'
+
+export const robotParts = [
+  ['Compute', 'Raspberry Pi 4 (Ubuntu, ROS 2)'],
+  ['Motors', 'Arduino Uno, 2 × L298N, 4 DC motors (skid steer)'],
+  ['Heading', 'MPU6050 IMU on the Arduino'],
+  ['Distance', 'STM32F103 Blue Pill, 4 × HC-SR04 (front, left, right, back)'],
+  ['Camera', 'Konftel Cam10 USB, V4L2'],
+]
+
+// Where each capability has been shown. Keep this honest: it is what a reader will ask about.
+export const statusRows = [
+  ['Motor control, IMU heading, motor trims', 'Physical robot', true],
+  ['Ultrasonic distance array', 'Physical robot', true],
+  ['ROS 2 drivers, camera and keyboard teleop', 'Physical robot', true],
+  ['Dataset logger', 'Built; no dataset recorded yet', false],
+  ['ArUco SLAM, tour planning, autonomous delivery', 'Simulation (Gazebo)', false],
+  ['Web app ordering and live control', 'Simulation; the Pi-side API server is the next step', false],
+]
+
+export const nextSteps = [
+  'Serve the robot API on the Pi, ideally by running web_bridge there',
+  'Align the Arduino firmware with the ROS 2 bridge (IMU yaw lines, the Z command)',
+  'Calibrate the real camera and print the markers at a measured size',
+  'Add the ultrasonic safety stop on the real robot',
+  'Record a first real dataset with the logger',
+  'Repeat the map-accuracy test against a tape-measured marker survey',
+]
+
 export const heroStats = [
   { value: '−39 %', label: 'driving saved by the Held-Karp tour (6 stops)' },
   { value: '0.39 m', label: 'internal map error of the final SLAM map' },

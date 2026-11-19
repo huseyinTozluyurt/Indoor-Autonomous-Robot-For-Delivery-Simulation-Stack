@@ -5,12 +5,12 @@ import AccuracyChart from './components/AccuracyChart.jsx'
 import MapEvolution from './components/MapEvolution.jsx'
 import TourCompare from './components/TourCompare.jsx'
 import SimVideo from './components/SimVideo.jsx'
-import { fig, pdf, heroStats, reports, markerKinds, tour, robotApi, webPages, gazebo, gazeboShots, links } from './data.js'
+import { fig, pdf, heroStats, reports, markerKinds, tour, robotApi, webPages, gazebo, gazeboShots, links, layers, robotPhoto, robotParts, statusRows, nextSteps } from './data.js'
 
 const sections = [
   ['overview', 'Overview'],
+  ['hardware', 'Robot'],
   ['simulation', 'Simulation'],
-  ['video', 'Video'],
   ['aruco', 'ArUco'],
   ['slam', 'SLAM'],
   ['maps', 'Maps'],
@@ -81,9 +81,9 @@ export default function App() {
               <p className="lead">
                 Customers order from a web shop and click where they are on the campus map. An operator loads the robot.
                 The robot localises on ArUco markers, drives the provably shortest multi-stop tour, and checks it sees the
-                right marker before it reports <em>Delivered</em>. The whole service is built and validated in a Gazebo
-                simulation. The web app talks to the robot only over HTTP, so the real robot (a Raspberry Pi 4 serving the
-                same API) can take the simulation’s place without changing it.
+                right marker before it reports <em>Delivered</em>. A physical prototype is built and driven with ROS 2 on a
+                Raspberry Pi 4; the autonomy and the ordering service are developed and measured in a Gazebo simulation,
+                behind an HTTP API designed for that robot.
               </p>
               <div className="cta">
                 <a className="btn primary" href="#overview">How it works</a>
@@ -97,10 +97,11 @@ export default function App() {
           <div className="wrap stats">
             {heroStats.map((s) => <Stat key={s.label} v={s.value} l={s.label} />)}
           </div>
+          <p className="wrap muted small stats-note">All four numbers are measured in the Gazebo simulation.</p>
         </section>
 
         <Section id="overview" kicker="01 · Overview" title="One system, five parts"
-          lead="The backend never talks to ROS directly. It talks to “the robot” over HTTP on port 5000. In simulation that is web_bridge; on the real robot it is the Raspberry Pi. Both serve the same API.">
+          lead="The backend never talks to ROS directly. It talks to “the robot” over HTTP on port 5000. In simulation that is web_bridge; on the real robot it is meant to be the Raspberry Pi, serving the same API.">
           <Architecture />
           <ol className="flow">
             <li><b>Order</b><span>A user fills a cart and clicks a delivery point on the SLAM map.</span></li>
@@ -111,7 +112,45 @@ export default function App() {
           </ol>
         </Section>
 
-        <Section id="simulation" kicker="02 · Simulation" title="A two-building campus in Gazebo"
+        <Section id="hardware" kicker="02 · Three repositories" title="One robot, three layers"
+          lead="The project spans three repositories. A physical robot was built, wired, calibrated and driven by hand with ROS 2 nodes on a Raspberry Pi 4. The hard parts, mapping, planning and the delivery service, were then built and measured in simulation, behind the same sensor and command formats the hardware uses.">
+          <div className="layers">
+            {layers.map((l) => (
+              <a key={l.repo} className="card layer" href={l.url} target="_blank" rel="noreferrer">
+                <span className="rn">Layer {l.n}</span>
+                <h3>{l.title}</h3>
+                <span className={`badge ${l.ok ? 'ok' : 'sim'}`}>{l.status}</span>
+                <p>{l.text}</p>
+                <ul className="chips">{l.stack.map((t) => <li key={t}>{t}</li>)}</ul>
+                <span className="rl"><code>{l.repo}</code> ↗</span>
+              </a>
+            ))}
+          </div>
+          <div className="grid2 top">
+            <Figure src={robotPhoto} caption="The physical prototype on an indoor test drive." />
+            <div className="stack">
+              <table className="tbl">
+                <caption>The real robot</caption>
+                <tbody>{robotParts.map(([k, v]) => <tr key={k}><td><b>{k}</b></td><td>{v}</td></tr>)}</tbody>
+              </table>
+              <div className="card">
+                <h3>How the layers fit</h3>
+                <ul className="steps">
+                  <li>The Arduino command <code>F/B/L/R/S &lt;left&gt; &lt;right&gt; &lt;ms&gt;</code> is the same in the firmware, the Pi scripts and the ROS 2 bridge.</li>
+                  <li>The web app’s sensor fields (front, left, right, back) are the STM32’s CSV line; in Gazebo, web_bridge fills them from the lidar.</li>
+                  <li>The backend was first written against the robot’s address on the LAN, then pointed at web_bridge.</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <table className="tbl top-gap">
+            <caption>Where each part has been shown</caption>
+            <thead><tr><th>Capability</th><th>Shown on</th></tr></thead>
+            <tbody>{statusRows.map(([c, w, hw]) => <tr key={c}><td>{c}</td><td><span className={`badge ${hw ? 'ok' : 'sim'}`}>{w}</span></td></tr>)}</tbody>
+          </table>
+        </Section>
+
+        <Section id="simulation" kicker="03 · Simulation" title="A two-building campus in Gazebo"
           lead="The robot is a Robotnik RB1 base with a 2D lidar, an IMU, an RGB-D camera and a mast camera for markers. Two worlds were built: campus_area (two rooms and a corridor) and two_buildings, a 70 × 45 m campus with a ring corridor, tables and 32 ArUco markers.">
           <Figure src={gazebo(gazeboShots[0].img)} caption={`${gazeboShots[0].title}. ${gazeboShots[0].text}`} className="wide first" />
           <div className="gallery g3">
@@ -138,7 +177,7 @@ export default function App() {
           <SimVideo />
         </Section>
 
-        <Section id="aruco" kicker="03 · Object detection" title="ArUco markers tell the robot where it is, and where it is not"
+        <Section id="aruco" kicker="04 · Object detection" title="ArUco markers tell the robot where it is, and where it is not"
           lead="Each DICT_4X4_50 marker has a known ID, size and purpose. One detection gives which landmark is in view, its range and bearing, and which way it faces. Because the ID is decoded from the image, there are no wrong matches.">
           <Figure src={fig('aruco_markers.png')} caption="Examples of the DICT_4X4_50 markers used in the world." className="wide" />
           <div className="grid2 top">
@@ -165,7 +204,7 @@ export default function App() {
           </div>
         </Section>
 
-        <Section id="slam" kicker="04 · SLAM and localisation" title="EKF-SLAM on markers, lidar for the walls"
+        <Section id="slam" kicker="05 · SLAM and localisation" title="EKF-SLAM on markers, lidar for the walls"
           lead="Wheel odometry gives distance, the IMU gyro gives heading (wheels slip in turns), ArUco detections correct the pose, and the 2D lidar draws a 0.1 m occupancy grid. The robot explores on its own until every wall has been seen from close range.">
           <div className="grid2 top">
             <div className="prose">
@@ -187,7 +226,7 @@ export default function App() {
           <Figure src={fig('slam_traj_markers.png')} caption="campus_full_map7. Left: the same run from three pose sources. Right: SLAM marker estimates (red) against the true positions (green)." className="wide" />
         </Section>
 
-        <Section id="maps" kicker="05 · Map evolution" title="Thirteen runs from a shattered map to campus_full_map7"
+        <Section id="maps" kicker="06 · Map evolution" title="Thirteen runs from a shattered map to campus_full_map7"
           lead="Between 4 and 8 November the mapper was run 13 times. Every map was scored against the world file. Heading turned out to be the dominant error, not marker detection. Pick a run to see what changed.">
           <div className="stats inline">
             <Stat v="53 → 1.4 m" l="mean absolute marker error, first → final" />
@@ -197,7 +236,7 @@ export default function App() {
           <MapEvolution />
         </Section>
 
-        <Section id="planning" kicker="06 · Path planning" title="Dijkstra for the path, Held-Karp for the order"
+        <Section id="planning" kicker="07 · Path planning" title="Dijkstra for the path, Held-Karp for the order"
           lead="Where to drive between two points is a shortest-path problem on the map grid. In which order to visit several points is a travelling-salesman problem on top of it. Both run behind /robot/plan, so the tour the operator previews is the tour the robot drives.">
           <div className="grid2 top">
             <div className="prose">
@@ -225,7 +264,7 @@ export default function App() {
           </div>
         </Section>
 
-        <Section id="webapp" kicker="07 · Web application" title="DeliveryBot: shop, operator and admin"
+        <Section id="webapp" kicker="08 · Web application" title="DeliveryBot: shop, operator and admin"
           lead="React 19 + Vite on the front, Spring Boot 3.5 + MySQL behind it. Three roles land on three pages, and every page polls the backend every 2 s, so a status change shows up for everyone without reloading.">
           <div className="gallery">
             {webPages.map((p) => (
@@ -252,7 +291,7 @@ export default function App() {
           </details>
         </Section>
 
-        <Section id="bridge" kicker="08 · Web app ↔ Gazebo" title="web_bridge makes the simulated robot look real"
+        <Section id="bridge" kicker="09 · Web app ↔ Gazebo" title="web_bridge makes the simulated robot look real"
           lead="The backend was first written for the physical robot’s REST API. web_bridge serves that same API from ROS 2: the delivery navigator wrapped in an HTTP server, a mission worker, a status reporter and an MJPEG camera stream.">
           <div className="grid2 top">
             <table className="tbl api">
@@ -269,16 +308,18 @@ export default function App() {
           </div>
         </Section>
 
-        <Section id="real" kicker="09 · Toward hardware" title="From simulation to the real robot"
-          lead="Status: the system is validated in simulation; running it on the physical robot is the next step. Because the contract is the HTTP API, moving to hardware means serving the same endpoints from the Raspberry Pi 4 and entering its IP in Robot Settings. The cleanest route is to run web_bridge itself on the robot, keeping the map, planner and status reporting tested in Gazebo.">
+        <Section id="real" kicker="10 · Toward hardware" title="From simulation to the real robot"
+          lead="Status: the robot exists and drives under ROS 2, and the delivery service is validated in simulation; joining the two is the next step. Because the contract is the HTTP API, moving to hardware means serving the same endpoints from the Raspberry Pi 4 and entering its IP in Robot Settings. The cleanest route is to run web_bridge itself on the robot, keeping the map, planner and status reporting tested in Gazebo.">
           <table className="tbl">
             <thead><tr><th /><th>Simulation</th><th>Real robot</th></tr></thead>
             <tbody>
-              <tr><td>Robot API on :5000</td><td>web_bridge (ROS 2 node)</td><td>Raspberry Pi 4 service</td></tr>
+              <tr><td>Robot API on :5000</td><td>web_bridge (ROS 2 node)</td><td>Raspberry Pi 4 service (next step)</td></tr>
               <tr><td>Sensors</td><td>Gazebo lidar, IMU, cameras</td><td>Physical sensors</td></tr>
               <tr><td>Selected in</td><td>Robot Settings → Use Gazebo Simulation</td><td>Robot Settings → robot IP</td></tr>
             </tbody>
           </table>
+          <h3 className="mt">Next integration steps</h3>
+          <ol className="steps">{nextSteps.map((t) => <li key={t}>{t}</li>)}</ol>
           <div className="cards3">
             <div className="card"><h3>Markers</h3><p>Print them, measure the black square and put the real size in the marker YAML. Range scales directly with it.</p></div>
             <div className="card"><h3>Calibration</h3><p>Calibrate the camera, wheel radius and track. Keep the gyro on; heading was the dominant error in every simulated run.</p></div>
@@ -286,7 +327,7 @@ export default function App() {
           </div>
         </Section>
 
-        <Section id="reports" kicker="10 · Reports" title="Six technical reports"
+        <Section id="reports" kicker="11 · Reports" title="Six technical reports"
           lead="Each report goes deeper than this page, with the measured data and the scripts that produced it.">
           <div className="reports">
             {reports.map((r) => (
@@ -313,6 +354,8 @@ export default function App() {
           <p>Indoor Autonomous Delivery Robot · <a href={links.portfolio} target="_blank" rel="noreferrer">Hüseyin Tozluyurt</a> · 2026</p>
           <p className="foot-links">
             <a href={links.repo} target="_blank" rel="noreferrer">Source on GitHub</a>
+            <a href={layers[0].url} target="_blank" rel="noreferrer">Embedded repo</a>
+            <a href={layers[1].url} target="_blank" rel="noreferrer">ROS 2 robot repo</a>
             <a href={links.portfolio} target="_blank" rel="noreferrer">Portfolio</a>
             <a href={links.linkedin} target="_blank" rel="noreferrer">LinkedIn</a>
             <a href="#top">Back to top ↑</a>
