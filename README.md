@@ -4,9 +4,18 @@ An indoor delivery robot that maps a building with **ArUco-marker visual SLAM**,
 shortest multi-stop tour with **Dijkstra + Held-Karp**, and drives it on its own. Customers
 order from a **web shop** (React + Spring Boot + MySQL), an operator loads the robot, and the
 robot delivers. The whole service is built and validated in a **ROS 2 Jazzy / Gazebo Harmonic**
-simulation of a two-building campus. The real robot (Raspberry Pi 4) serves the same REST API as
-the simulation, so it can take the simulation's place without changes to the web app; running
-on the physical robot is the next step.
+simulation of a two-building campus, behind a REST API designed for the real robot (Raspberry Pi 4).
+
+This repository is the third layer of the project. The physical robot lives in two companion
+repositories:
+
+| Layer | Repository | Status |
+|---|---|---|
+| 1. Embedded control (Arduino motors + IMU, STM32 ultrasonic array, Pi serial) | [Indoor-Autonomous-Robot-for-Delivery](https://github.com/huseyinTozluyurt/Indoor-Autonomous-Robot-for-Delivery) | Built and run on the robot |
+| 2. ROS 2 on the real robot (drivers, camera, teleop, dataset logger) | [Autonomous_Robot_Dataset_Collection_with_ROS2](https://github.com/huseyinTozluyurt/Autonomous_Robot_Dataset_Collection_with_ROS2) | Driven by hand on the robot; no dataset recorded yet |
+| 3. Autonomy and the delivery service (this repo) | Indoor-Autonomous-Robot-For-Delivery-Simulation-Stack | Validated in simulation |
+
+Joining layers 2 and 3 (serving the robot API on the Pi) is the next step.
 
 **Project website:** <https://huseyintozluyurt.github.io/Indoor-Autonomous-Robot-For-Delivery-Simulation-Stack/> (demo video, figures and the six reports; source in [`site/`](site/)).
 
