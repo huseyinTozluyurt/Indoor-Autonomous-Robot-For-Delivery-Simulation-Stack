@@ -4,19 +4,20 @@ import Architecture from './components/Architecture.jsx'
 import AccuracyChart from './components/AccuracyChart.jsx'
 import MapEvolution from './components/MapEvolution.jsx'
 import TourCompare from './components/TourCompare.jsx'
+import EmbeddedArch from './components/EmbeddedArch.jsx'
 import SimVideo from './components/SimVideo.jsx'
-import { fig, pdf, heroStats, reports, markerKinds, tour, robotApi, webPages, gazebo, gazeboShots, links, layers, robotPhoto, robotParts, statusRows, nextSteps } from './data.js'
+import { fig, pdf, heroStats, reports, markerKinds, tour, robotApi, webPages, gazebo, gazeboShots, links, layers, robotPhoto, robotParts, statusRows, nextSteps, hw, embeddedRepo, embeddedRoles, arduinoPins, motionStates, stm32Pins, piCommands, firmwareVersions, piScripts } from './data.js'
 
 const sections = [
   ['overview', 'Overview'],
   ['hardware', 'Robot'],
+  ['embedded', 'Firmware'],
   ['simulation', 'Simulation'],
   ['aruco', 'ArUco'],
   ['slam', 'SLAM'],
   ['maps', 'Maps'],
   ['planning', 'Planning'],
   ['webapp', 'Web app'],
-  ['bridge', 'Sim ↔ web'],
   ['real', 'Real robot'],
   ['reports', 'Reports'],
 ]
@@ -146,11 +147,94 @@ export default function App() {
           <table className="tbl top-gap">
             <caption>Where each part has been shown</caption>
             <thead><tr><th>Capability</th><th>Shown on</th></tr></thead>
-            <tbody>{statusRows.map(([c, w, hw]) => <tr key={c}><td>{c}</td><td><span className={`badge ${hw ? 'ok' : 'sim'}`}>{w}</span></td></tr>)}</tbody>
+            <tbody>{statusRows.map(([c, w, onHw]) => <tr key={c}><td>{c}</td><td><span className={`badge ${onHw ? 'ok' : 'sim'}`}>{w}</span></td></tr>)}</tbody>
           </table>
+          <p className="cta"><a className="btn" href="#embedded">How the robot’s firmware works ↓</a></p>
         </Section>
 
-        <Section id="simulation" kicker="03 · Simulation" title="A two-building campus in Gazebo"
+        <Section id="embedded" kicker="03 · Embedded software" title="Three processors, one job each"
+          lead="The physical robot splits its software by timing. A Raspberry Pi 4 runs the slow, high-level logic in Python. An Arduino Uno closes the motion loop every few milliseconds. An STM32 times ultrasonic echoes to the microsecond. They talk over two serial links with plain-text protocols, so each board can be flashed, tested and replaced on its own.">
+          <EmbeddedArch />
+          <div className="tbl-scroll"><table className="tbl">
+            <caption>Division of work</caption>
+            <thead><tr><th>Board</th><th>Language</th><th>Responsibility</th><th>Time scale</th></tr></thead>
+            <tbody>{embeddedRoles.map(([b, l, r, t]) => <tr key={b}><td><b>{b}</b></td><td>{l}</td><td>{r}</td><td>{t}</td></tr>)}</tbody>
+          </table></div>
+
+          <h3 className="mt">Arduino Uno: motion control and heading recovery</h3>
+          <div className="grid2 top">
+            <Figure src={hw('arduino_wiring.png')} caption="Arduino Uno wiring: two L298N drivers (one per side, ENA/ENB jumpers removed for PWM), four DC motors, the MPU6050 on I²C and the Raspberry Pi on USB." />
+            <div className="prose">
+              <p>The robot is a four-wheel skid steer. Each L298N drives the two motors of one side, and each motor has its own PWM pin (D3, D5, D6, D11 are the Uno’s hardware PWM pins) plus two direction pins. Firmware direction flags flip the B motors, so the wiring can stay as it is.</p>
+              <table className="tbl">
+                <thead><tr><th>Motor</th><th>PWM</th><th>IN1 / IN2</th></tr></thead>
+                <tbody>{arduinoPins.map(([m, p, d]) => <tr key={m}><td>{m}</td><td><code>{p}</code></td><td><code>{d}</code></td></tr>)}</tbody>
+              </table>
+              <p>On boot the sketch configures the MPU6050 at ±250 °/s (131 LSB per °/s), averages 1000 still samples to remove the gyro bias, then prints <code>READY</code>. Every loop it integrates the gyro Z rate into a yaw angle.</p>
+            </div>
+          </div>
+          <h3 className="mt">A five-state motion machine</h3>
+          <p className="muted">Each F or B command runs through these states without blocking the loop, so a new command or S can interrupt it at any time.</p>
+          <ol className="flow">
+            {motionStates.map(([n, t]) => <li key={n}><b>{n}</b><span>{t}</span></li>)}
+          </ol>
+          <div className="cards3">
+            <div className="card"><h3>Why trim, not PID</h3><p>The first sketch ran a PID on yaw. The current one uses a fixed per-side trim, found on the floor, and corrects only past 5°: fewer gains to tune and no constant fight between the controller and the motors. Turns are open-loop and timed, with the right turn slowed by 38 PWM to match the left.</p></div>
+            <div className="card"><h3>Guard rails</h3><p>Corrections start at least 1.5 s into a command, are at least 3 s apart and are capped at five per command, so a noisy gyro cannot make the robot oscillate.</p></div>
+            <div className="card"><h3>Readable replies</h3><p>Every command gets <code>ACK</code>, then <code>DONE</code>; bad input gets <code>ERR BAD_COMMAND</code>. A debug flag prints target, yaw and error every 500 ms and each correction trigger.</p></div>
+          </div>
+          <table className="tbl top-gap">
+            <caption>How the motor firmware evolved</caption>
+            <thead><tr><th>Sketch</th><th>What it does</th></tr></thead>
+            <tbody>{firmwareVersions.map(([v, d]) => <tr key={v}><td><code>{v}</code></td><td>{d}</td></tr>)}</tbody>
+          </table>
+
+          <h3 className="mt">STM32F103: four-way distance perception</h3>
+          <Figure src={hw('stm32_pinout.png')} caption="STM32CubeMX pinout of the STM32F103C8T6: TRIG outputs on PB0, PB1, PB10, PB11, ECHO inputs on PA0–PA3, USART1 on PA9/PA10 to the Pi, SWD on PA13/PA14 for the ST-Link. The firmware itself runs on the internal 8 MHz HSI clock." className="wide" />
+          <div className="grid2 top">
+            <table className="tbl">
+              <caption>HC-SR04 wiring</caption>
+              <thead><tr><th>Sensor</th><th>TRIG (output)</th><th>ECHO (input, pull-down)</th></tr></thead>
+              <tbody>{stm32Pins.map(([n, t, e]) => <tr key={n}><td>{n}</td><td><code>{t}</code></td><td><code>{e}</code></td></tr>)}</tbody>
+            </table>
+            <div className="prose">
+              <ol className="steps">
+                <li><b>Timer:</b> TIM2 runs as a 1 MHz counter (prescaler 7 on the 8 MHz clock) for microsecond trigger pulses and echo timing.</li>
+                <li><b>One at a time:</b> <code>HCSR04_Read_All()</code> fires the four sensors in turn with 60 ms gaps, so one sensor’s ping is never heard by another.</li>
+                <li><b>Distance:</b> echo time in µs ÷ 58 gives centimetres. No echo within 50 ms reports 999 and sets an error flag.</li>
+                <li><b>Stream:</b> every ~300 ms USART1 sends one CSV line to the Pi at 115200 8N1.</li>
+              </ol>
+              <pre><code>{`FRONT,LEFT,RIGHT,BACK,STATUS
+35,42,28,999,1     ← back sensor timed out`}</code></pre>
+            </div>
+          </div>
+
+          <h3 className="mt">Raspberry Pi: the serial contract and the controllers</h3>
+          <div className="grid2 top">
+            <table className="tbl">
+              <caption>Pi → Arduino (USB, /dev/ttyUSB0, 115200, one line per command)</caption>
+              <tbody>{piCommands.map(([c, d]) => <tr key={c}><td><code>{c}</code></td><td>{d}</td></tr>)}</tbody>
+            </table>
+            <table className="tbl">
+              <caption>Pi scripts</caption>
+              <tbody>{piScripts.map(([f, t, d]) => <tr key={f}><td><code>{f}</code><br /><span className="muted small">{t} · {d}</span></td></tr>)}</tbody>
+            </table>
+          </div>
+          <p className="muted small">The same <code>F/B/L/R/S</code> protocol is what the ROS 2 Arduino bridge publishes from <code>/cmd_vel</code>, and the STM32’s four distances are the <code>front, left, right, back</code> fields the web app reads from the robot API.</p>
+
+          <div className="card top-gap">
+            <h3>Known limits, honestly</h3>
+            <ul className="steps">
+              <li>No wheel encoders: distance is timed, not measured.</li>
+              <li>Turns are open loop; only straight driving is gyro-supervised.</li>
+              <li>The ultrasonic data is logged but not yet used to stop the motors (planned at 20 cm).</li>
+              <li>Some Pi scripts and the ROS 2 bridge expect yaw lines and a <code>Z</code> command from an earlier firmware revision, so the boards are not yet one tested-together release.</li>
+            </ul>
+          </div>
+          <p className="cta"><a className="btn" href={embeddedRepo} target="_blank" rel="noreferrer">Firmware and Pi scripts on GitHub ↗</a></p>
+        </Section>
+
+        <Section id="simulation" kicker="04 · Simulation" title="A two-building campus in Gazebo"
           lead="The robot is a Robotnik RB1 base with a 2D lidar, an IMU, an RGB-D camera and a mast camera for markers. Two worlds were built: campus_area (two rooms and a corridor) and two_buildings, a 70 × 45 m campus with a ring corridor, tables and 32 ArUco markers.">
           <Figure src={gazebo(gazeboShots[0].img)} caption={`${gazeboShots[0].title}. ${gazeboShots[0].text}`} className="wide first" />
           <div className="gallery g3">
@@ -177,7 +261,7 @@ export default function App() {
           <SimVideo />
         </Section>
 
-        <Section id="aruco" kicker="04 · Object detection" title="ArUco markers tell the robot where it is, and where it is not"
+        <Section id="aruco" kicker="05 · Object detection" title="ArUco markers tell the robot where it is, and where it is not"
           lead="Each DICT_4X4_50 marker has a known ID, size and purpose. One detection gives which landmark is in view, its range and bearing, and which way it faces. Because the ID is decoded from the image, there are no wrong matches.">
           <Figure src={fig('aruco_markers.png')} caption="Examples of the DICT_4X4_50 markers used in the world." className="wide" />
           <div className="grid2 top">
@@ -204,7 +288,7 @@ export default function App() {
           </div>
         </Section>
 
-        <Section id="slam" kicker="05 · SLAM and localisation" title="EKF-SLAM on markers, lidar for the walls"
+        <Section id="slam" kicker="06 · SLAM and localisation" title="EKF-SLAM on markers, lidar for the walls"
           lead="Wheel odometry gives distance, the IMU gyro gives heading (wheels slip in turns), ArUco detections correct the pose, and the 2D lidar draws a 0.1 m occupancy grid. The robot explores on its own until every wall has been seen from close range.">
           <div className="grid2 top">
             <div className="prose">
@@ -226,7 +310,7 @@ export default function App() {
           <Figure src={fig('slam_traj_markers.png')} caption="campus_full_map7. Left: the same run from three pose sources. Right: SLAM marker estimates (red) against the true positions (green)." className="wide" />
         </Section>
 
-        <Section id="maps" kicker="06 · Map evolution" title="Thirteen runs from a shattered map to campus_full_map7"
+        <Section id="maps" kicker="07 · Map evolution" title="Thirteen runs from a shattered map to campus_full_map7"
           lead="Between 4 and 8 November the mapper was run 13 times. Every map was scored against the world file. Heading turned out to be the dominant error, not marker detection. Pick a run to see what changed.">
           <div className="stats inline">
             <Stat v="53 → 1.4 m" l="mean absolute marker error, first → final" />
@@ -236,7 +320,7 @@ export default function App() {
           <MapEvolution />
         </Section>
 
-        <Section id="planning" kicker="07 · Path planning" title="Dijkstra for the path, Held-Karp for the order"
+        <Section id="planning" kicker="08 · Path planning" title="Dijkstra for the path, Held-Karp for the order"
           lead="Where to drive between two points is a shortest-path problem on the map grid. In which order to visit several points is a travelling-salesman problem on top of it. Both run behind /robot/plan, so the tour the operator previews is the tour the robot drives.">
           <div className="grid2 top">
             <div className="prose">
@@ -264,7 +348,7 @@ export default function App() {
           </div>
         </Section>
 
-        <Section id="webapp" kicker="08 · Web application" title="DeliveryBot: shop, operator and admin"
+        <Section id="webapp" kicker="09 · Web application" title="DeliveryBot: shop, operator and admin"
           lead="React 19 + Vite on the front, Spring Boot 3.5 + MySQL behind it. Three roles land on three pages, and every page polls the backend every 2 s, so a status change shows up for everyone without reloading.">
           <div className="gallery">
             {webPages.map((p) => (
@@ -291,7 +375,7 @@ export default function App() {
           </details>
         </Section>
 
-        <Section id="bridge" kicker="09 · Web app ↔ Gazebo" title="web_bridge makes the simulated robot look real"
+        <Section id="bridge" kicker="10 · Web app ↔ Gazebo" title="web_bridge makes the simulated robot look real"
           lead="The backend was first written for the physical robot’s REST API. web_bridge serves that same API from ROS 2: the delivery navigator wrapped in an HTTP server, a mission worker, a status reporter and an MJPEG camera stream.">
           <div className="grid2 top">
             <table className="tbl api">
@@ -308,7 +392,7 @@ export default function App() {
           </div>
         </Section>
 
-        <Section id="real" kicker="10 · Toward hardware" title="From simulation to the real robot"
+        <Section id="real" kicker="11 · Toward hardware" title="From simulation to the real robot"
           lead="Status: the robot exists and drives under ROS 2, and the delivery service is validated in simulation; joining the two is the next step. Because the contract is the HTTP API, moving to hardware means serving the same endpoints from the Raspberry Pi 4 and entering its IP in Robot Settings. The cleanest route is to run web_bridge itself on the robot, keeping the map, planner and status reporting tested in Gazebo.">
           <table className="tbl">
             <thead><tr><th /><th>Simulation</th><th>Real robot</th></tr></thead>
@@ -327,7 +411,7 @@ export default function App() {
           </div>
         </Section>
 
-        <Section id="reports" kicker="11 · Reports" title="Six technical reports"
+        <Section id="reports" kicker="12 · Reports" title="Six technical reports"
           lead="Each report goes deeper than this page, with the measured data and the scripts that produced it.">
           <div className="reports">
             {reports.map((r) => (
