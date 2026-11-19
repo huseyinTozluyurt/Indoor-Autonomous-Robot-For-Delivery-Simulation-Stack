@@ -5,7 +5,7 @@ import AccuracyChart from './components/AccuracyChart.jsx'
 import MapEvolution from './components/MapEvolution.jsx'
 import TourCompare from './components/TourCompare.jsx'
 import SimVideo from './components/SimVideo.jsx'
-import { fig, pdf, heroStats, reports, markerKinds, tour, robotApi, webPages, gazebo, gazeboShots } from './data.js'
+import { fig, pdf, heroStats, reports, markerKinds, tour, robotApi, webPages, gazebo, gazeboShots, links } from './data.js'
 
 const sections = [
   ['overview', 'Overview'],
@@ -13,7 +13,7 @@ const sections = [
   ['video', 'Video'],
   ['aruco', 'ArUco'],
   ['slam', 'SLAM'],
-  ['maps', 'Map evolution'],
+  ['maps', 'Maps'],
   ['planning', 'Planning'],
   ['webapp', 'Web app'],
   ['bridge', 'Sim ↔ web'],
@@ -44,6 +44,7 @@ function Nav() {
           {sections.map(([id, label]) => (
             <a key={id} href={`#${id}`} className={active === id ? 'on' : ''} onClick={() => setOpen(false)}>{label}</a>
           ))}
+          <a href={links.repo} className="nav-ext" target="_blank" rel="noreferrer">GitHub ↗</a>
         </nav>
       </div>
     </header>
@@ -80,13 +81,15 @@ export default function App() {
               <p className="lead">
                 Customers order from a web shop and click where they are on the campus map. An operator loads the robot.
                 The robot localises on ArUco markers, drives the provably shortest multi-stop tour, and checks it sees the
-                right marker before it reports <em>Delivered</em>. Everything runs first in simulation, then moves to the real
-                robot without changing the web app.
+                right marker before it reports <em>Delivered</em>. The whole service is built and validated in a Gazebo
+                simulation. The web app talks to the robot only over HTTP, so the real robot (a Raspberry Pi 4 serving the
+                same API) can take the simulation’s place without changing it.
               </p>
               <div className="cta">
                 <a className="btn primary" href="#overview">How it works</a>
                 <a className="btn" href="#video">Watch the demo</a>
                 <a className="btn" href="#reports">Read the six reports</a>
+                <a className="btn" href={links.repo} target="_blank" rel="noreferrer">View code on GitHub ↗</a>
               </div>
             </div>
             <Figure src={fig('web_operator_route.png')} caption="Operator page: the Dijkstra shortest tour on the robot’s own SLAM map." className="hero-fig" />
@@ -267,7 +270,7 @@ export default function App() {
         </Section>
 
         <Section id="real" kicker="09 · Toward hardware" title="From simulation to the real robot"
-          lead="Because the contract is the HTTP API, moving to hardware means serving the same endpoints from the Raspberry Pi 4 and entering its IP in Robot Settings. The cleanest route is to run web_bridge itself on the robot, keeping the map, planner and status reporting tested in Gazebo.">
+          lead="Status: the system is validated in simulation; running it on the physical robot is the next step. Because the contract is the HTTP API, moving to hardware means serving the same endpoints from the Raspberry Pi 4 and entering its IP in Robot Settings. The cleanest route is to run web_bridge itself on the robot, keeping the map, planner and status reporting tested in Gazebo.">
           <table className="tbl">
             <thead><tr><th /><th>Simulation</th><th>Real robot</th></tr></thead>
             <tbody>
@@ -307,7 +310,13 @@ export default function App() {
       </main>
       <footer className="foot">
         <div className="wrap">
-          <p>Indoor Autonomous Delivery Robot · Hüseyin Tozluyurt · 2026</p>
+          <p>Indoor Autonomous Delivery Robot · <a href={links.portfolio} target="_blank" rel="noreferrer">Hüseyin Tozluyurt</a> · 2026</p>
+          <p className="foot-links">
+            <a href={links.repo} target="_blank" rel="noreferrer">Source on GitHub</a>
+            <a href={links.portfolio} target="_blank" rel="noreferrer">Portfolio</a>
+            <a href={links.linkedin} target="_blank" rel="noreferrer">LinkedIn</a>
+            <a href="#top">Back to top ↑</a>
+          </p>
           <p className="muted small">The Robotnik RB1 robot, sensors and worlds come from RobotnikAutomation and keep their own licenses.</p>
         </div>
       </footer>

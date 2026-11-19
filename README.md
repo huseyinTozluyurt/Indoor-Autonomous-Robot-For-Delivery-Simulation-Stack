@@ -3,9 +3,10 @@
 An indoor delivery robot that maps a building with **ArUco-marker visual SLAM**, plans the
 shortest multi-stop tour with **Dijkstra + Held-Karp**, and drives it on its own. Customers
 order from a **web shop** (React + Spring Boot + MySQL), an operator loads the robot, and the
-robot delivers. Everything runs first in a **ROS 2 Jazzy / Gazebo Harmonic** simulation of a
-two-building campus and is then moved to the real robot (Raspberry Pi 4), which serves the
-same REST API as the simulation.
+robot delivers. The whole service is built and validated in a **ROS 2 Jazzy / Gazebo Harmonic**
+simulation of a two-building campus. The real robot (Raspberry Pi 4) serves the same REST API as
+the simulation, so it can take the simulation's place without changes to the web app; running
+on the physical robot is the next step.
 
 **Project website:** <https://huseyintozluyurt.github.io/Indoor-Autonomous-Robot-For-Delivery-Simulation-Stack/> (demo video, figures and the six reports; source in [`site/`](site/)).
 
