@@ -2,6 +2,12 @@
 export const fig = (name) => `${import.meta.env.BASE_URL}figures/${name}`
 export const pdf = (name) => `${import.meta.env.BASE_URL}reports/${name}`
 
+export const links = {
+  repo: 'https://github.com/huseyinTozluyurt/Indoor-Autonomous-Robot-For-Delivery-Simulation-Stack',
+  portfolio: 'https://huseyintozluyurt.github.io/portfolio/',
+  linkedin: 'https://linkedin.com/in/HuseyinTozluyurt',
+}
+
 export const heroStats = [
   { value: '−39 %', label: 'driving saved by the Held-Karp tour (6 stops)' },
   { value: '0.39 m', label: 'internal map error of the final SLAM map' },

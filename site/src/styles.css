@@ -70,9 +70,13 @@ p { margin: 0 0 1em; }
   linear-gradient(var(--surface), var(--surface)) 5px 5px / 12px 12px no-repeat,
   linear-gradient(var(--accent), var(--accent)) 8px 8px / 3px 3px no-repeat, var(--accent); position: relative; }
 .nav nav { display: flex; gap: 2px; margin-left: auto; overflow-x: auto; }
-.nav nav a { color: var(--text2); text-decoration: none; font-size: .88rem; padding: 6px 10px; border-radius: 8px; white-space: nowrap; }
+.nav nav a { color: var(--text2); text-decoration: none; font-size: .86rem; padding: 6px 8px; border-radius: 8px; white-space: nowrap; }
 .nav nav a:hover { background: var(--bg2); color: var(--text); }
 .nav nav a.on { color: var(--accent); background: var(--accent-soft); }
+.nav nav a.nav-ext { color: var(--accent); font-weight: 600; }
+.foot-links { display: flex; flex-wrap: wrap; gap: 6px 18px; margin-top: .6rem !important; }
+.foot a { color: var(--accent); text-decoration: none; }
+.foot a:hover { text-decoration: underline; }
 .nav-toggle { display: none; margin-left: auto; background: none; border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 6px 12px; font: inherit; font-size: .9rem; }
 
 /* hero */
@@ -254,6 +258,9 @@ p { margin: 0 0 1em; }
   .flow { grid-template-columns: repeat(2, 1fr); }
   .cards3, .gallery, .reports { grid-template-columns: repeat(2, 1fr); }
   .stats { grid-template-columns: repeat(2, 1fr); }
+}
+/* the full section nav needs about 1180px; below that use the menu button */
+@media (max-width: 1180px) {
   .nav-toggle { display: block; }
   .nav nav { display: none; position: absolute; top: 58px; left: 0; right: 0; flex-direction: column; background: var(--bg); border-bottom: 1px solid var(--border); padding: 8px 16px 14px; }
   .nav nav.open { display: flex; }
